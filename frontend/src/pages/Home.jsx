@@ -50,7 +50,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Recent Recipes */}
+      {/* Recent Recipes */} 
       <section className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-bold">Recent Recipes</h2>
