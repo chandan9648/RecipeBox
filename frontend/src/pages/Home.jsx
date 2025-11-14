@@ -10,7 +10,7 @@ const Home = () => {
   const recent = useMemo(() => data.slice(-4).reverse(), [data]);
   return (
     <>
-      {/* Hero */}
+      {/* Hero */} 
       <section className="relative">
         <div className="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-8 items-center">
           <div>
