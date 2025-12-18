@@ -9,11 +9,8 @@ const app = express();
 app.use(express.json());
 // Configure CORS for dev front-end
 app.use(cors({
-<<<<<<< HEAD
+
 	origin: ["https://recipeebox.vercel.app", "http://localhost:5173"],
-=======
-	origin: ["recipeebox.vercel.app", "http://localhost:5173"],
->>>>>>> e71434e55251f12597d5c8cc9869b86fcec1daef
 	credentials: true
 }));
 
