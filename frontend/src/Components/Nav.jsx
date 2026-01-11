@@ -79,7 +79,7 @@ const Nav = () => {
               <i className="ri-heart-3-line mr-1"></i> Favorites
             </NavLink>
           )}
-
+          {/* Display user name if logged in */}
           {isLoggedIn && displayName && (
             <span className="flex items-center gap-2 text-black/80 select-none">
               <i className="ri-user-3-line"></i>
