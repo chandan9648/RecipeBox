@@ -7,11 +7,11 @@ import { AuthProvider } from './context/AuthContext.jsx';
 import'remixicon/fonts/remixicon.css';
 
 createRoot(document.getElementById('root')).render(
-  <RecipeContext>
-    <AuthProvider>
+  <AuthProvider>
+    <RecipeContext>
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    </AuthProvider>
-  </RecipeContext>
+    </RecipeContext>
+  </AuthProvider>
 );

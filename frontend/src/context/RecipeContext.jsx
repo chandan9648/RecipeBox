@@ -1,19 +1,52 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { recipecontext as RECIPECONTEXT } from "./recipecontext";
+import { useAuth } from "./auth";
 
 const RecipeContext = (props) => {
+  const { user } = useAuth() || {};
   const [data, setData] = useState([]);
   const [favorites, setFavorites] = useState([]);
 
+  const favoritesKey = useMemo(() => {
+    const userId = user?._id || user?.id;
+    const identity = userId || user?.email;
+    return identity ? `favorite:${identity}` : "favorite:guest";
+  }, [user]);
+
+  const safeParse = (raw, fallback) => {
+    try {
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  // One-time migration: old shared key -> guest key
+  useEffect(() => {
+    const legacy = localStorage.getItem("favorite");
+    if (!legacy) return;
+    const alreadyMigrated = localStorage.getItem("favorite:guest");
+    if (alreadyMigrated) {
+      localStorage.removeItem("favorite");
+      return;
+    }
+    localStorage.setItem("favorite:guest", legacy);
+    localStorage.removeItem("favorite");
+  }, []);
+
   useEffect(() => {
     setData(JSON.parse(localStorage.getItem("recipe")) || []);
-    setFavorites(JSON.parse(localStorage.getItem("favorite")) || []);
   }, []);
+
+  // Load favorites for current user/guest
+  useEffect(() => {
+    setFavorites(safeParse(localStorage.getItem(favoritesKey), []));
+  }, [favoritesKey]);
 
   // Persist favorites when they change
   useEffect(() => {
-    localStorage.setItem("favorite", JSON.stringify(favorites));
-  }, [favorites]);
+    localStorage.setItem(favoritesKey, JSON.stringify(favorites));
+  }, [favorites, favoritesKey]);
 
 
 
