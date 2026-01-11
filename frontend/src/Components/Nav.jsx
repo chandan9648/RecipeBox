@@ -11,6 +11,7 @@ const Nav = () => {
 
   const closeMenu = () => setOpen(false);
   const isLoggedIn = !!(token || user);
+  const displayName = user?.name || user?.email?.split?.('@')?.[0] || '';
   const handleLogout = async () => {
     try {
       await api.post('auth/logout', {}, {
@@ -77,6 +78,13 @@ const Nav = () => {
             >
               <i className="ri-heart-3-line mr-1"></i> Favorites
             </NavLink>
+          )}
+
+          {isLoggedIn && displayName && (
+            <span className="flex items-center gap-2 text-black/80 select-none">
+              <i className="ri-user-3-line"></i>
+              <span className="max-w-[140px] truncate bg-pink-100 px-1 rounded-md" title={displayName}>{displayName}</span>
+            </span>
           )}
 
           {!isLoggedIn ? (
@@ -166,6 +174,14 @@ const Nav = () => {
               <i className="ri-heart-3-line mr-1"></i> Favorites
             </NavLink>
           )}
+
+          {isLoggedIn && displayName && (
+            <div className="py-1 flex items-center gap-2 text-black/80 select-none">
+              <i className="ri-user-3-line"></i>
+              <span className="truncate" title={displayName}>{displayName}</span>
+            </div>
+          )}
+
           {!isLoggedIn ? (
             <NavLink
               className={({ isActive }) =>
