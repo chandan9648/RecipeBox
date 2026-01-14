@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth";
+import api from "../utils/axios.jsx";
 
 const SingleRecipe = () => {
   const { data, setData, favorites, setFavorites } = useContext(recipecontext);
@@ -33,23 +34,37 @@ const SingleRecipe = () => {
     }
   }, [recipe, reset]);
 
-  const UpdateHandler = (recipe) => {
-    const index = data.findIndex((r) => String(r.id) === String(params.id));
-    const copydata = [...data];
-    copydata[index] = { ...copydata[index], ...recipe };
-    setData(copydata);
-    localStorage.setItem("recipe", JSON.stringify(copydata));
-    toast.success("Recipe Updated!");
-    reset();
+  const UpdateHandler = async (values) => {
+    try {
+      const res = await api.patch(`recipes/${params.id}`, values);
+      const updated = res?.data?.recipe;
+      if (!updated) throw new Error('Recipe update failed');
+
+      const index = data.findIndex((r) => String(r.id) === String(params.id));
+      const copydata = [...data];
+      if (index >= 0) copydata[index] = updated;
+      setData(copydata);
+
+      toast.success("Recipe Updated!");
+      reset(updated);
+    } catch (error) {
+      console.error('Update recipe error:', error);
+      toast.error(error.response?.data?.message || 'Failed to update recipe');
+    }
   };
 
-  const DeleteHandler = () => {
+  const DeleteHandler = async () => {
     if (!confirm("Delete this recipe?")) return;
-    const filterdata = data.filter((r) => r.id !== recipe.id);
-    setData(filterdata);
-    localStorage.setItem("recipe", JSON.stringify(filterdata));
-    toast.info("Recipe Deleted!");
-    navigate("/recipes");
+    try {
+      await api.delete(`recipes/${params.id}`);
+      const filterdata = data.filter((r) => String(r.id) !== String(params.id));
+      setData(filterdata);
+      toast.info("Recipe Deleted!");
+      navigate("/recipes");
+    } catch (error) {
+      console.error('Delete recipe error:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete recipe');
+    }
   };
 
   const isFav = favorites.some((f) => String(f.id) === String(recipe.id));

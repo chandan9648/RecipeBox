@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { recipecontext as RECIPECONTEXT } from "./recipecontext";
 import { useAuth } from "./auth";
+import api from "../utils/axios.jsx";
 
 const RecipeContext = (props) => {
   const { user } = useAuth() || {};
@@ -35,7 +36,23 @@ const RecipeContext = (props) => {
   }, []);
 
   useEffect(() => {
-    setData(JSON.parse(localStorage.getItem("recipe")) || []);
+    let mounted = true;
+    async function loadRecipes() {
+      try {
+        const res = await api.get('recipes');
+        const list = res?.data?.recipes || [];
+        if (mounted) setData(list);
+      } catch (e) {
+        // Fallback (older behavior) in case backend is down
+        const local = safeParse(localStorage.getItem('recipe'), []);
+        if (mounted) setData(local);
+      }
+    }
+    loadRecipes();
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load favorites for current user/guest

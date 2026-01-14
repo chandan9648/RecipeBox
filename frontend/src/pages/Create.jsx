@@ -1,11 +1,11 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { nanoid } from "nanoid";
 import { useContext } from "react";
 import { recipecontext } from "../context/recipecontext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth";
+import api from "../utils/axios.jsx";
 
 const Create = () => {
   const navigate = useNavigate();
@@ -19,27 +19,31 @@ const Create = () => {
     formState: { errors, isSubmitting },
   } = useForm();
 
-  const SubmitHandler = (recipe) => {
-    recipe.id = nanoid();
-    // normalize fields
-    recipe.title = (recipe.title || "").trim();
-    recipe.image = (recipe.image || "").trim();
-    recipe.desc = (recipe.desc || "").trim();
-    recipe.chef = (recipe.chef || "Anonymous").trim();
-    recipe.category = recipe.category || "";
-    recipe.ingr = recipe.ingr || "";
-    recipe.inst = recipe.inst || "";
-    const now = new Date().toISOString();
-    recipe.createdAt = now;
-    recipe.updatedAt = now;
+  const SubmitHandler = async (recipe) => {
+    try {
+      // normalize fields
+      const payload = {
+        title: (recipe.title || '').trim(),
+        image: (recipe.image || '').trim(),
+        desc: (recipe.desc || '').trim(),
+        chef: (recipe.chef || 'Anonymous').trim(),
+        category: recipe.category || '',
+        ingr: recipe.ingr || '',
+        inst: recipe.inst || '',
+      };
 
-    const copydata = [...data];
-    copydata.push(recipe);
-    setData(copydata);
-    localStorage.setItem("recipe", JSON.stringify(copydata));
-    toast.success("Recipe Created Successfully");
-    reset();
-  navigate("/recipes");
+      const res = await api.post('recipes', payload);
+      const created = res?.data?.recipe;
+      if (!created) throw new Error('Recipe create failed');
+
+      setData([created, ...data]);
+      toast.success("Recipe Created Successfully");
+      reset();
+      navigate("/recipes");
+    } catch (error) {
+      console.error('Create recipe error:', error);
+      toast.error(error.response?.data?.message || 'Failed to create recipe');
+    }
   }
 
   const cover =

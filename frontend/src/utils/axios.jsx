@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Shared API client for backend
 const instance = axios.create({
-  baseURL: "https://recipebox-gi57.onrender.com/api/",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://recipebox-gi57.onrender.com/api/",
   withCredentials: true,
 });
 
@@ -11,6 +11,11 @@ const instance = axios.create({
 // Add a request interceptor
 instance.interceptors.request.use(
   function (config) {
+    const token = localStorage.getItem('token');
+    if (token && !config.headers?.Authorization) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     // console.log("request----->", config?.method, config?.url);
     return config;
   },
