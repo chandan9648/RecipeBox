@@ -126,9 +126,9 @@ const Home = () => {
           <div>
             <h3 className="font-bold text-white mb-2">Follow</h3>
             <div className="flex gap-3 text-xl">
-              <a aria-label="Twitter" href="#" className="hover:text-white"><i className="ri-twitter-x-line"></i></a>
-              <a aria-label="Instagram" href="#" className="hover:text-white"><i className="ri-instagram-line"></i></a>
-              <a aria-label="GitHub" href="#" className="hover:text-white"><i className="ri-github-line"></i></a>
+              <a aria-label="Twitter" href="https://x.com/chandan101204" className="hover:text-white"><i className="ri-twitter-x-line"></i></a>
+              <a aria-label="Instagram" href="https://instagram.com/mr.chandan.156" className="hover:text-white"><i className="ri-instagram-line"></i></a>
+              <a aria-label="GitHub" href="https://github.com/chandan9648" className="hover:text-white"><i className="ri-github-line"></i></a>
             </div>
           </div>
         </div>
