@@ -24,7 +24,8 @@ const Home = () => {
             </div>
           </div>
           <div className="hidden md:block">
-            <img className="rounded-lg shadow-lg transition-transform duration-300 hover:scale-105" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200&auto=format&fit=crop" alt="Delicious food" />
+            {/* <img className="rounded-lg shadow-lg transition-transform duration-300 hover:scale-105" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200&auto=format&fit=crop" alt="Delicious food" /> */}
+             <img className="rounded-full h-100 ml-16 shadow-2xl transition-transform duration-300 hover:scale-105" src="https://i.pinimg.com/1200x/6b/65/41/6b6541cf791ecf8680de60f51e44e95f.jpg" alt="Delicious food" />
           </div>
         </div>
       </section>
