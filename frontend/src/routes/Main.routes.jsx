@@ -36,9 +36,9 @@ const MainRoutes = () => {
         {/* Backwards compatibility redirect */}
         <Route path="/recipe" element={<Navigate to="/recipes" replace />} />
         <Route path="/recipes/details/:id" element={<SingleRecipe />} />
-  <Route path="/create" element={<SellerRoute><Create /></SellerRoute>} />
+        <Route path="/create" element={<SellerRoute><Create /></SellerRoute>} />
         <Route path="/about" element={<About />} />
-  <Route path="/fav" element={<UserOnlyRoute><Fav /></UserOnlyRoute>} />
+        <Route path="/fav" element={<UserOnlyRoute><Fav /></UserOnlyRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="*" element={<PageNotFound />} />
