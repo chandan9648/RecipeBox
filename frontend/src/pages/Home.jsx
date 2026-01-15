@@ -96,7 +96,7 @@ const Home = () => {
       </a>
 
       {/* Footer */}
-      <footer className="mt-10 border-t border-white/20 bg-white/10 backdrop-blur">
+      <footer className="mt-10 border-t border-white/20 bg-white/10 backdrop">
         <div className="max-w-6xl mx-auto px-4 py-10 grid gap-8 md:grid-cols-4 text-white/90">
           <div>
             <h2 className="text-xl font-extrabold text-white">Recipe<span className="text-rose-300">Box</span></h2>
