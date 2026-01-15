@@ -128,7 +128,7 @@ const SingleRecipe = () => {
         {/* details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <div>
-            <h4 className="font-semibold mb-1">Ingredients</h4>
+            <h4 className="font-semibold mb-1 text-red-600">Ingredients</h4>
             <ul className="list-disc list-inside text-sm">
               {(recipe.ingr || "")
                 .split(",")
@@ -140,7 +140,7 @@ const SingleRecipe = () => {
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold mb-1">Instructions</h4>
+            <h4 className="font-semibold mb-1 text-red-600">Instructions</h4>
             <ol className="list-decimal list-inside text-sm space-y-1">
               {(recipe.inst || "")
                 .split(",")
