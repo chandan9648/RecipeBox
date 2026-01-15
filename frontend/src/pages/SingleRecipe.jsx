@@ -12,6 +12,7 @@ const SingleRecipe = () => {
   const navigate = useNavigate();
   const params = useParams();
   const { isSeller } = useAuth() || {};
+  
   // Match id regardless of it being number (seed) or string (nanoid)
   const recipe = data.find((r) => String(r.id) === String(params.id));
 
