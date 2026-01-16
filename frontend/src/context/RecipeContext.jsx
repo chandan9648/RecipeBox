@@ -39,7 +39,8 @@ const RecipeContext = (props) => {
     let mounted = true;
     async function loadRecipes() {
       try {
-        const res = await api.get('recipes');
+        // Public endpoint: don't attach auth header (stale token can cause confusion)
+        const res = await api.get('recipes', { skipAuth: true });
         const list = res?.data?.recipes || [];
         if (mounted) setData(list);
       } catch (e) {

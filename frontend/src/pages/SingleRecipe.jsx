@@ -68,7 +68,7 @@ const SingleRecipe = () => {
     }
   };
 
-  const isFav = favorites.some((f) => String(f.id) === String(recipe.id));
+  const isFav = recipe ? favorites.some((f) => String(f.id) === String(recipe.id)) : false;
 
   const FavHandler = () => {
     if (isFav) return;

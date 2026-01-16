@@ -11,6 +11,9 @@ const instance = axios.create({
 // Add a request interceptor
 instance.interceptors.request.use(
   function (config) {
+    // Allow callers to explicitly skip attaching auth headers (useful for public endpoints)
+    if (config?.skipAuth) return config;
+
     const token = localStorage.getItem('token');
     if (token && !config.headers?.Authorization) {
       config.headers = config.headers || {};
