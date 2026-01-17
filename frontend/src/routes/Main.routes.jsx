@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Home from "../pages/Home";
 import Create from "../pages/Create";
 import Recipe from "../pages/Recipes";
@@ -14,22 +14,25 @@ import AdminDashboard from "../pages/AdminDashboard";
 import { useAuth } from "../context/auth";
 
 const SellerRoute = ({ children }) => {
+  const location = useLocation();
   const { isSeller, user } = useAuth() || {};
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (!isSeller) return <Navigate to="/" replace />;
   return children;
 }
 
 const UserOnlyRoute = ({ children }) => {
+  const location = useLocation();
   const { isSeller, user } = useAuth() || {};
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (isSeller) return <Navigate to="/" replace />; // sellers not allowed
   return children;
 }
 
 const AdminRoute = ({ children }) => {
+  const location = useLocation();
   const { isAdmin, user } = useAuth() || {};
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (!isAdmin) return <Navigate to="/" replace />;
   return children;
 }

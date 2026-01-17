@@ -28,7 +28,8 @@ const Login = () => {
   if (setToken) setToken(res.data.token);
   if (setUser) setUser(res.data.user);
   const from = location?.state?.from;
-  navigate(from || "/");
+  const role = res?.data?.user?.role;
+  navigate(from || (role === "admin" ? "/admin" : "/"));
 
   }catch (error) {
       console.error("Login error:", error);
