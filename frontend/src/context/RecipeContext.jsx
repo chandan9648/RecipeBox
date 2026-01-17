@@ -3,6 +3,9 @@ import { recipecontext as RECIPECONTEXT } from "./recipecontext";
 import { useAuth } from "./auth";
 import api from "../utils/axios.jsx";
 
+const RECIPES_CACHE_KEY = "recipes:cache:v1";
+const LEGACY_RECIPES_KEY = "recipe";
+
 const RecipeContext = (props) => {
   const { user } = useAuth() || {};
   const [data, setData] = useState([]);
@@ -39,14 +42,28 @@ const RecipeContext = (props) => {
     let mounted = true;
     async function loadRecipes() {
       try {
+        // 1) Fast paint: show cached recipes immediately (even for guests)
+        const cached = safeParse(localStorage.getItem(RECIPES_CACHE_KEY), null);
+        const legacy = cached ? null : safeParse(localStorage.getItem(LEGACY_RECIPES_KEY), null);
+        const initial = Array.isArray(cached) ? cached : Array.isArray(legacy) ? legacy : [];
+        if (mounted && initial.length > 0) setData(initial);
+
+        // 2) Revalidate in background
         // Public endpoint: don't attach auth header (stale token can cause confusion)
-        const res = await api.get('recipes', { skipAuth: true });
+        const res = await api.get("recipes", { skipAuth: true, timeout: 30000 });
         const list = res?.data?.recipes || [];
         if (mounted) setData(list);
+
+        // Keep a fresh cache for next visit
+        localStorage.setItem(RECIPES_CACHE_KEY, JSON.stringify(list));
+        // Back-compat with older code paths
+        localStorage.setItem(LEGACY_RECIPES_KEY, JSON.stringify(list));
       } catch (e) {
-        // Fallback (older behavior) in case backend is down
-        const local = safeParse(localStorage.getItem('recipe'), []);
-        if (mounted) setData(local);
+        // If API fails, keep whatever was cached (if any)
+        const fallback =
+          safeParse(localStorage.getItem(RECIPES_CACHE_KEY), null) ??
+          safeParse(localStorage.getItem(LEGACY_RECIPES_KEY), []);
+        if (mounted) setData(Array.isArray(fallback) ? fallback : []);
       }
     }
     loadRecipes();
@@ -55,6 +72,17 @@ const RecipeContext = (props) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Persist recipes whenever they change (helps instant load next time)
+  useEffect(() => {
+    if (!Array.isArray(data) || data.length === 0) return;
+    try {
+      localStorage.setItem(RECIPES_CACHE_KEY, JSON.stringify(data));
+      localStorage.setItem(LEGACY_RECIPES_KEY, JSON.stringify(data));
+    } catch {
+      // ignore quota/serialization errors
+    }
+  }, [data]);
 
   // Load favorites for current user/guest
   useEffect(() => {
