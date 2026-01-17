@@ -1,21 +1,40 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../utils/axios.jsx";
 import { useAuth } from "../context/auth";
+import { Mail, User, UtensilsCrossed } from "lucide-react";
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 
 const AdminDashboard = () => {
   const { user } = useAuth() || {};
   const [stats, setStats] = useState({ usersCount: 0, recipesCount: 0 });
+  const [userRecipeStats, setUserRecipeStats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const loadStats = useCallback(async () => {
+  const loadDashboard = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await api.get("admin/stats");
-      const usersCount = Number(res?.data?.usersCount || 0);
-      const recipesCount = Number(res?.data?.recipesCount || 0);
+      const [statsRes, userStatsRes] = await Promise.all([
+        api.get("admin/stats"),
+        api.get("admin/user-recipe-stats"),
+      ]);
+
+      const usersCount = Number(statsRes?.data?.usersCount || 0);
+      const recipesCount = Number(statsRes?.data?.recipesCount || 0);
       setStats({ usersCount, recipesCount });
+
+      const users = Array.isArray(userStatsRes?.data?.users)
+        ? userStatsRes.data.users
+        : [];
+      setUserRecipeStats(users);
     } catch (e) {
       setError(e?.response?.data?.message || "Failed to load admin stats");
     } finally {
@@ -24,38 +43,53 @@ const AdminDashboard = () => {
   }, []);
 
   useEffect(() => {
-    loadStats();
-  }, [loadStats]);
+    loadDashboard();
+  }, [loadDashboard]);
+
+  const pieData = useMemo(() => {
+    const list = Array.isArray(userRecipeStats) ? userRecipeStats : [];
+    const normalized = list
+      .map((u) => ({
+        name: u?.name || "Unknown",
+        email: u?.email || "",
+        value: Number(u?.recipeCount || 0),
+      }))
+      .filter((d) => d.value > 0);
+
+    // Keep chart readable: show top 8 + Others
+    const top = normalized.slice(0, 8);
+    const rest = normalized.slice(8);
+    const othersValue = rest.reduce((sum, d) => sum + d.value, 0);
+    return othersValue > 0
+      ? [...top, { name: "Others", email: "", value: othersValue }]
+      : top;
+  }, [userRecipeStats]);
+
+  const COLORS = [
+    "#ff4d6d",
+    "#4dabf7",
+    "#20c997",
+    "#845ef7",
+    "#ffd43b",
+    "#ff922b",
+    "#51cf66",
+    "#748ffc",
+    "#94d82d",
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* Header */}
-      <div className="bg-green-100 rounded-lg p-4 flex items-center justify-between">
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="bg-green-100 rounded-lg p-4 flex items-center justify-between shadow-sm">
         <h1 className="text-xl md:text-2xl font-bold text-black">
-          Welcome back, {user?.name || "Admin"}!
+          Welcome back, {user?.name || "Admin"}! 
         </h1>
         <button
-          onClick={loadStats}
+          onClick={loadDashboard}
           disabled={loading}
-          className="bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white px-4 py-2 rounded"
+          className="bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white px-5 py-2 rounded-lg font-medium"
         >
           {loading ? "Refreshing..." : "Refresh"}
         </button>
-      </div>
-
-      {/* Stats */}
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <div className="bg-white/90 rounded-xl shadow p-6 text-black">
-          <div className="text-sm text-gray-600">Total Users</div>
-          <div className="mt-2 text-4xl font-extrabold">{stats.usersCount}</div>
-          <div className="mt-2 text-xs text-gray-500">Registered accounts (excluding admins)</div>
-        </div>
-
-        <div className="bg-white/90 rounded-xl shadow p-6 text-black">
-          <div className="text-sm text-gray-600">Total Recipes Shared</div>
-          <div className="mt-2 text-4xl font-extrabold">{stats.recipesCount}</div>
-          <div className="mt-2 text-xs text-gray-500">Count only (no recipe details)</div>
-        </div>
       </div>
 
       {error && (
@@ -63,6 +97,106 @@ const AdminDashboard = () => {
           {error}
         </div>
       )}
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1.35fr_1fr]">
+        {/* Left: User list */}
+        <div className="bg-green-50 rounded-2xl p-4 md:p-6 shadow-sm border border-green-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-extrabold tracking-wider text-gray-800">
+              USER INFO
+            </h2>
+            <div className="text-xs text-gray-600">
+              Total users: <span className="font-semibold">{stats.usersCount}</span>
+              {" "}• Total recipes: <span className="font-semibold">{stats.recipesCount}</span>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-4">
+            {(userRecipeStats?.length ? userRecipeStats : []).map((u) => (
+              <div
+                key={u?.userId || u?.email}
+                className="bg-white rounded-xl border border-green-100 shadow-sm p-4 flex items-center justify-between"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 h-9 w-9 rounded-full bg-green-100 flex items-center justify-center">
+                    <User className="h-5 w-5 text-green-700" />
+                  </div>
+                  <div>
+                    <div className="text-base font-bold text-gray-900">
+                      {u?.name || "Unknown"}
+                    </div>
+                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span>{u?.email || "-"}</span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                      <UtensilsCrossed className="h-4 w-4" />
+                      <span>
+                        Total recipes: <span className="font-semibold">{Number(u?.recipeCount || 0)}</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-sm font-semibold text-gray-700">
+                  {Number(u?.recipeCount || 0)}
+                </div>
+              </div>
+            ))}
+
+            {!loading && (!userRecipeStats || userRecipeStats.length === 0) && (
+              <div className="bg-white rounded-xl border border-green-100 p-4 text-sm text-gray-600">
+                No users found.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right: Pie chart */}
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+          <h2 className="text-lg font-extrabold text-center text-gray-900">
+            User Uploads Pie Chart
+          </h2>
+
+          <div className="mt-4 h-[380px] w-full">
+            {pieData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+                No recipe data to display.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip
+                    formatter={(value, _name, props) => {
+                      const email = props?.payload?.email;
+                      return [
+                        `${value} recipes${email ? ` • ${email}` : ""}`,
+                        "",
+                      ];
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={80} />
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="55%"
+                    outerRadius={125}
+                    stroke="#fff"
+                    strokeWidth={2}
+                    label
+                  >
+                    {pieData.map((_, idx) => (
+                      <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
