@@ -105,7 +105,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <div className="bg-green-100 rounded-lg p-4 flex items-center justify-between shadow-sm">
+      <div className="bg-red-100 rounded-lg p-4 flex items-center justify-between shadow-sm">
         <h1 className="text-xl md:text-2xl font-bold text-black">
           Welcome back, {user?.name || "Admin"}! 
         </h1>
