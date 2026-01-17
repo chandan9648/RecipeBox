@@ -39,4 +39,24 @@ async function getUserRecipeStats(_req, res) {
   }
 }
 
-module.exports = { getAdminStats, getUserRecipeStats };
+async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+
+    const user = await userModel.findById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.role === 'admin') {
+      return res.status(400).json({ message: 'Cannot delete admin user' });
+    }
+
+    // Remove recipes created by this user to avoid orphan data
+    await Recipe.deleteMany({ createdBy: user._id });
+    await userModel.deleteOne({ _id: user._id });
+
+    return res.json({ message: 'User deleted successfully' });
+  } catch (_err) {
+    return res.status(500).json({ message: 'Failed to delete user' });
+  }
+}
+
+module.exports = { getAdminStats, getUserRecipeStats, deleteUser };

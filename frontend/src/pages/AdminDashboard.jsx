@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../utils/axios.jsx";
 import { useAuth } from "../context/auth";
-import { Mail, User, UtensilsCrossed } from "lucide-react";
+import { Mail, Trash2, User, UtensilsCrossed } from "lucide-react";
 import {
   Cell,
   Legend,
@@ -16,6 +16,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({ usersCount: 0, recipesCount: 0 });
   const [userRecipeStats, setUserRecipeStats] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   const [error, setError] = useState("");
 
   const loadDashboard = useCallback(async () => {
@@ -76,6 +77,31 @@ const AdminDashboard = () => {
     "#748ffc",
     "#94d82d",
   ];
+
+  const handleDeleteUser = useCallback(
+    async (u) => {
+      const userId = u?.userId;
+      if (!userId) return;
+
+      const name = u?.name || u?.email || "this user";
+      const ok = window.confirm(
+        `Delete ${name}?\n\nThis will also delete all recipes created by this user.`
+      );
+      if (!ok) return;
+
+      setDeletingUserId(userId);
+      setError("");
+      try {
+        await api.delete(`admin/users/${userId}`);
+        await loadDashboard();
+      } catch (e) {
+        setError(e?.response?.data?.message || "Failed to delete user");
+      } finally {
+        setDeletingUserId(null);
+      }
+    },
+    [loadDashboard]
+  );
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -138,8 +164,19 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="text-sm font-semibold text-gray-700">
-                  {Number(u?.recipeCount || 0)}
+                <div className="flex items-center gap-3">
+                  <div className="text-sm font-semibold text-gray-700">
+                    {Number(u?.recipeCount || 0)}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteUser(u)}
+                    disabled={loading || deletingUserId === u?.userId}
+                    title="Delete user"
+                    className="h-9 w-9  rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center disabled:opacity-60 cursor-pointer"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
             ))}
