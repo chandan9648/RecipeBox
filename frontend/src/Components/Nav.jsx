@@ -6,19 +6,20 @@ import api from "../utils/axios.jsx";
 
 const Nav = () => {
   const [open, setOpen] = useState(false);
-  const { isSeller, user, token, setToken, setUser } = useAuth() || {};
+  const { isSeller, isAdmin, user, token, setToken, setUser } = useAuth() || {};
   const navigate = useNavigate();
 
   const closeMenu = () => setOpen(false);
   const isLoggedIn = !!(token || user);
   const displayName = user?.name || user?.email?.split?.('@')?.[0] || '';
+  const adminOnlyView = !!(isLoggedIn && isAdmin);
   const handleLogout = async () => {
     try {
       await api.post('auth/logout', {}, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
     } catch {
-      // ignore network errors for UX, we'll still clear client state
+      
     }
     setToken && setToken(null);
     setUser && setUser(null);
@@ -35,6 +36,25 @@ const Nav = () => {
 
         {/* Desktop links */}
         <div className="hidden md:flex gap-6 text-black font-semibold">
+          {adminOnlyView ? (
+            <>
+              {displayName && (
+                <span className="flex items-center gap-2 text-black/80 select-none">
+                  <i className="ri-user-3-line"></i>
+                  <span
+                    className="max-w-[180px] truncate bg-pink-100 px-2 py-0.5 rounded-md"
+                    title={displayName}
+                  >
+                    {displayName}
+                  </span>
+                </span>
+              )}
+              <button onClick={handleLogout} className="hover:text-red-700 cursor-pointer">
+                <i className="ri-logout-box-line mr-1"></i> Logout
+              </button>
+            </>
+          ) : (
+            <>
           <NavLink
             className={({ isActive }) =>
               `hover:text-red-700 ${isActive ? "text-red-700 underline underline-offset-4" : ""}`
@@ -104,19 +124,37 @@ const Nav = () => {
               <i className="ri-logout-box-line mr-1"></i> Logout
             </button>
           )}
+            </>
+          )}
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          className="md:hidden p-2 rounded hover:bg-red-200/60 text-black"
-          onClick={() => setOpen((s) => !s)}
-          aria-label="Toggle menu"
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-        >
-          <i className={`ri-${open ? "close" : "menu"}-line text-2xl`}></i>
-        </button>
+        {/* Mobile */}
+        {adminOnlyView ? (
+          <div className="md:hidden flex items-center gap-3 text-black font-semibold">
+            {displayName && (
+              <span
+                className="max-w-[160px] truncate bg-pink-100 px-2 py-1 rounded-md text-black/80"
+                title={displayName}
+              >
+                {displayName}
+              </span>
+            )}
+            <button onClick={handleLogout} className="hover:text-red-700">
+              <i className="ri-logout-box-line mr-1"></i> Logout
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="md:hidden p-2 rounded hover:bg-red-200/60 text-black"
+            onClick={() => setOpen((s) => !s)}
+            aria-label="Toggle menu"
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+          >
+            <i className={`ri-${open ? "close" : "menu"}-line text-2xl`}></i>
+          </button>
+        )}
       </div>
 
       {/* Mobile menu panel */}
@@ -125,6 +163,23 @@ const Nav = () => {
         className={`${open ? "block" : "hidden"} md:hidden border-t border-red-200/60 bg-red-100/90 backdrop-blur-sm`}
       >
         <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 text-black font-semibold">
+          {adminOnlyView ? (
+            <>
+              {displayName && (
+                <div className="py-1 flex items-center gap-2 text-black/80 select-none">
+                  <i className="ri-user-3-line"></i>
+                  <span className="truncate" title={displayName}>{displayName}</span>
+                </div>
+              )}
+              <button
+                onClick={handleLogout}
+                className="text-left py-1 hover:text-red-700 cursor-pointer"
+              >
+                <i className="ri-logout-box-line mr-1 "></i> Logout
+              </button>
+            </>
+          ) : (
+            <>
           <NavLink
             className={({ isActive }) =>
               `py-1 ${isActive ? "text-red-700 underline underline-offset-4" : "hover:text-red-700"}`
@@ -199,6 +254,8 @@ const Nav = () => {
             >
               <i className="ri-logout-box-line mr-1 "></i> Logout
             </button>
+          )}
+            </>
           )}
         </div>
       </div>
