@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate, NavLink, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import {Eye, EyeOff} from "lucide-react";
@@ -11,6 +11,7 @@ const Login = () => {
   const [loading, setLoading, ] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { setToken, setUser } = useAuth() || {};
 
   const handleLogin = async (e) => {
@@ -26,7 +27,8 @@ const Login = () => {
   toast.success(res.data.message);
   if (setToken) setToken(res.data.token);
   if (setUser) setUser(res.data.user);
-  navigate("/");
+  const from = location?.state?.from;
+  navigate(from || "/");
 
   }catch (error) {
       console.error("Login error:", error);

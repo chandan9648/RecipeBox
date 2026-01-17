@@ -2,6 +2,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const authRoutes = require('./routes/auth.route');
 const recipeRoutes = require('./routes/recipe.route');
+const adminRoutes = require('./routes/admin.route');
 const cors = require('cors');
 
 
@@ -20,6 +21,7 @@ app.use(cookieParser());
 //Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 

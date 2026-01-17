@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 
 //REGISTER CONTROLLER
  async function registerController(req, res) {
-    const { name, email, password, role } = req.body;
+     const { name, email, password, role, adminSecret } = req.body;
 
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
@@ -13,11 +13,20 @@ const bcrypt = require('bcrypt');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    let finalRole = role === 'seller' ? 'seller' : 'user';
+    // Allow admin creation ONLY when explicitly enabled via env secret
+    if (role === 'admin') {
+        const secret = process.env.ADMIN_SECRET;
+        if (secret && adminSecret && String(adminSecret) === String(secret)) {
+            finalRole = 'admin';
+        }
+    }
+
     const user = await userModel.create({
         name,
         email,
         password: hashedPassword,
-        role: role === 'seller' ? 'seller' : 'user'
+        role: finalRole
     });
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });

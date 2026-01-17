@@ -10,6 +10,7 @@ import Login from "../pages/Login";
 import { Navigate } from "react-router-dom";
 import Fav from "../pages/Fav";
 import Register from "../pages/Register";
+import AdminDashboard from "../pages/AdminDashboard";
 import { useAuth } from "../context/auth";
 
 const SellerRoute = ({ children }) => {
@@ -26,6 +27,13 @@ const UserOnlyRoute = ({ children }) => {
   return children;
 }
 
+const AdminRoute = ({ children }) => {
+  const { isAdmin, user } = useAuth() || {};
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />;
+  return children;
+}
+
 const MainRoutes = () => {
   return (
     <div>
@@ -37,6 +45,7 @@ const MainRoutes = () => {
         <Route path="/recipe" element={<Navigate to="/recipes" replace />} />
         <Route path="/recipes/details/:id" element={<SingleRecipe />} />
         <Route path="/create" element={<SellerRoute><Create /></SellerRoute>} />
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/about" element={<About />} />
         <Route path="/fav" element={<UserOnlyRoute><Fav /></UserOnlyRoute>} />
         <Route path="/login" element={<Login />} />
