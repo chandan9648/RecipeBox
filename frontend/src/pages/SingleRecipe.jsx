@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import {  useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { recipecontext } from "../context/recipecontext";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
@@ -10,8 +10,9 @@ import api from "../utils/axios.jsx";
 const SingleRecipe = () => {
   const { data, setData, favorites, setFavorites } = useContext(recipecontext);
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
-  const { isSeller } = useAuth() || {};
+  const { isSeller, user } = useAuth() || {};
   
   // Match id regardless of it being number (seed) or string (nanoid)
   const recipe = data.find((r) => String(r.id) === String(params.id));
@@ -72,6 +73,11 @@ const SingleRecipe = () => {
 
   const FavHandler = () => {
     if (isFav) return;
+    // Require login for favorites
+    if (!user) {
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
     const updated = [...favorites, recipe];
     setFavorites(updated);
     // toast.success("Added to Favorites");
