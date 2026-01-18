@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-	origin: ["https://recipeebox.vercel.app", "http://localhost:5173", "http://localhost:3000/api/auth/google"],
+	origin: ["https://recipeebox.vercel.app", "http://localhost:5173", "http://localhost:3000/api/auth/google/callback"],
 	credentials: true
 }));
 
