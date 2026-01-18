@@ -15,16 +15,18 @@ import { useAuth } from "../context/auth";
 
 const SellerRoute = ({ children }) => {
   const location = useLocation();
-  const { isSeller, user } = useAuth() || {};
+  const { isSeller, isAdmin, user } = useAuth() || {};
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
   if (!isSeller) return <Navigate to="/" replace />;
   return children;
 }
 
 const UserOnlyRoute = ({ children }) => {
   const location = useLocation();
-  const { isSeller, user } = useAuth() || {};
+  const { isSeller, isAdmin, user } = useAuth() || {};
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
   if (isSeller) return <Navigate to="/" replace />; // sellers not allowed
   return children;
 }
@@ -38,6 +40,24 @@ const AdminRoute = ({ children }) => {
 }
 
 const MainRoutes = () => {
+  const { isAdmin, user, token, loading } = useAuth() || {};
+  const isLoggedIn = !!(token || user);
+
+  // If we have a token and are still hydrating the user, avoid rendering the wrong routes briefly.
+  if (loading && isLoggedIn && !user) {
+    return null;
+  }
+
+  // Admin experience: only show Admin Dashboard and redirect everything else to it.
+  if (isLoggedIn && isAdmin) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
+
   return (
     <div>
       <Routes>
