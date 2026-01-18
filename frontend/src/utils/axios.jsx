@@ -1,24 +1,8 @@
 import axios from "axios";
 
-function resolveBaseUrl() {
-  const configured = import.meta.env.VITE_API_BASE_URL;
-  const fallbackProd = "https://recipebox-gi57.onrender.com/api/";
-
-  // In production, never try to call localhost from a public origin
-  if (import.meta.env.PROD) {
-    if (!configured) return fallbackProd;
-    if (/^https?:\/\/localhost\b/i.test(configured)) return fallbackProd;
-    if (/^https?:\/\/127\.0\.0\.1\b/i.test(configured)) return fallbackProd;
-    return configured;
-  }
-
-  // In dev, allow local backend
-  return configured || "http://localhost:3000/api/";
-}
-
 // Shared API client for backend
 const instance = axios.create({
-  baseURL: resolveBaseUrl(),
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://recipebox-gi57.onrender.com/api/",
   withCredentials: true,
 });
 

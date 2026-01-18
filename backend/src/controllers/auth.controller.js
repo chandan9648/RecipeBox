@@ -4,15 +4,6 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 
-function setAuthCookie(res, token) {
-    const isProd = String(process.env.NODE_ENV).toLowerCase() === 'production';
-    res.cookie('token', token, {
-        httpOnly: true,
-        sameSite: isProd ? 'none' : 'lax',
-        secure: isProd,
-    });
-}
-
 
 //REGISTER CONTROLLER
  async function registerController(req, res) {
@@ -42,7 +33,7 @@ function setAuthCookie(res, token) {
     });
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    setAuthCookie(res, token);
+    res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
 
     const safeUser = await userModel.findById(user._id).select('-password');
     return res.status(201).json({ message: "User registered successfully", user: safeUser, token });
@@ -69,7 +60,7 @@ async function loginController(req, res) {
     }
   
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    setAuthCookie(res, token);
+    res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
 
     const safeUser = await userModel.findById(user._id).select('-password');
     return res.status(200).json({ message: "Login successful", user: safeUser, token });
@@ -85,26 +76,15 @@ async function googleLoginController(req, res) {
             return res.status(400).json({ message: 'Missing Google credential' });
         }
 
-        // Support multiple OAuth client IDs (e.g., local vs production)
-        // Env options:
-        // - GOOGLE_CLIENT_ID=...
-        // - GOOGLE_CLIENT_IDS=id1,id2,id3
-        const googleClientIds = [
-            ...(process.env.GOOGLE_CLIENT_IDS || '')
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean),
-            process.env.GOOGLE_CLIENT_ID,
-        ].filter(Boolean);
-
-        if (!googleClientIds.length) {
-            return res.status(500).json({ message: 'Server misconfigured: GOOGLE_CLIENT_ID(S) missing' });
+        const googleClientId = process.env.GOOGLE_CLIENT_ID;
+        if (!googleClientId) {
+            return res.status(500).json({ message: 'Server misconfigured: GOOGLE_CLIENT_ID missing' });
         }
 
-        const client = new OAuth2Client();
+        const client = new OAuth2Client(googleClientId);
         const ticket = await client.verifyIdToken({
             idToken: credential,
-            audience: googleClientIds,
+            audience: googleClientId,
         });
         const payload = ticket.getPayload();
 
@@ -143,17 +123,13 @@ async function googleLoginController(req, res) {
         }
 
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        setAuthCookie(res, token);
+        res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
 
         const safeUser = await userModel.findById(user._id).select('-password');
         return res.status(200).json({ message: 'Login successful', user: safeUser, token });
     } catch (error) {
-        const msg = error?.message || String(error);
-        console.error('Google login error:', msg);
-        const isProd = String(process.env.NODE_ENV).toLowerCase() === 'production';
-        return res.status(400).json({
-            message: isProd ? 'Google login failed' : `Google login failed: ${msg}`,
-        });
+        console.error('Google login error:', error?.message || error);
+        return res.status(400).json({ message: 'Google login failed' });
     }
 }
 
