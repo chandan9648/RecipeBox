@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerController, loginController, logoutController } = require('../controllers/auth.controller');
+const { registerController, loginController, logoutController, googleLoginController } = require('../controllers/auth.controller');
 const { authenticate } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -7,6 +7,7 @@ const router = express.Router();
 //AUTH ROUTES
 router.post("/register", registerController);
 router.post("/login", loginController);
+router.post("/google", googleLoginController);
 router.post("/logout", logoutController);
 
 // get current user

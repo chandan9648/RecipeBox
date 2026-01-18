@@ -1,3 +1,27 @@
+# Google Authentication (Login)
+
+This project supports Google Sign-In using **Google Identity Services**.
+
+## Backend env
+
+Set these in your backend environment (Render / local `.env`):
+
+- `GOOGLE_CLIENT_ID` = your Google OAuth Client ID
+- `JWT_SECRET` = your JWT secret (already required)
+
+Backend endpoint:
+
+- `POST /api/auth/google` with body `{ "credential": "<google_id_token>" }`
+
+## Frontend env
+
+Set this in your frontend environment (Vercel / local `.env`):
+
+- `VITE_GOOGLE_CLIENT_ID` = same Google OAuth Client ID
+
+Notes:
+
+- Make sure your Google OAuth client has your domains added in **Authorized JavaScript origins** (e.g. `http://localhost:5173` and your Vercel domain).
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

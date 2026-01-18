@@ -1,18 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, NavLink, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "axios";
 import {Eye, EyeOff} from "lucide-react";
 import { useAuth } from "../context/auth";
+import api from "../utils/axios.jsx";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading, ] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { setToken, setUser } = useAuth() || {};
+  const googleBtnRef = useRef(null);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,9 +22,11 @@ const Login = () => {
 
     try {
   
-      const res = await axios.post("https://recipebox-gi57.onrender.com/api/auth/login", {
-       email, password
-      });
+      const res = await api.post(
+        "auth/login",
+        { email, password },
+        { skipAuth: true }
+      );
 
   toast.success(res.data.message);
   if (setToken) setToken(res.data.token);
@@ -38,11 +42,89 @@ const Login = () => {
       setLoading(false);
   }
   };
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      return;
+    }
+
+    const google = window.google;
+    if (!google?.accounts?.id || !googleBtnRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const init = () => {
+      if (cancelled) return;
+      try {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response) => {
+            try {
+              if (!response?.credential) throw new Error("No Google credential");
+              setGoogleLoading(true);
+              const res = await api.post(
+                "auth/google",
+                { credential: response.credential },
+                { skipAuth: true }
+              );
+
+              toast.success(res.data.message || "Login successful");
+              if (setToken) setToken(res.data.token);
+              if (setUser) setUser(res.data.user);
+              const from = location?.state?.from;
+              const role = res?.data?.user?.role;
+              navigate(from || (role === "admin" ? "/admin" : "/"));
+            } catch (err) {
+              console.error("Google login error:", err);
+              toast.error(err?.response?.data?.message || "Google login failed");
+            } finally {
+              setGoogleLoading(false);
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        google.accounts.id.renderButton(googleBtnRef.current, {
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          text: "continue_with",
+          width: 320,
+        });
+      } catch (e) {
+        console.error("Failed to init Google button", e);
+      }
+    };
+
+    init();
+    return () => {
+      cancelled = true;
+    };
+  }, [location?.state?.from, navigate, setToken, setUser]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-rose-400 text-black">
    
       <div className=" shadow-lg rounded-xl p-8 w-full max-w-md bg-red-300">
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+          <div className="mb-5 flex flex-col items-center">
+            <div ref={googleBtnRef} />
+            {googleLoading && (
+              <div className="mt-2 text-sm text-gray-700">Signing in with Google...</div>
+            )}
+            <div className="my-4 w-full flex items-center gap-3">
+              <div className="h-px flex-1 bg-black/20" />
+              <span className="text-xs text-black/60">OR</span>
+              <div className="h-px flex-1 bg-black/20" />
+            </div>
+          </div>
+        ) : null}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>

@@ -1,6 +1,8 @@
 const userModel = require('../models/auth.model');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 
 
 //REGISTER CONTROLLER
@@ -26,13 +28,15 @@ const bcrypt = require('bcrypt');
         name,
         email,
         password: hashedPassword,
+        provider: 'local',
         role: finalRole
     });
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
 
-    return res.status(201).json({ message: "User registered successfully", user, token });
+    const safeUser = await userModel.findById(user._id).select('-password');
+    return res.status(201).json({ message: "User registered successfully", user: safeUser, token });
 
 }
 
@@ -45,6 +49,10 @@ async function loginController(req, res) {
         return res.status(400).json({ message: "User not found" });
     }
 
+    if (user.provider === 'google') {
+        return res.status(400).json({ message: "This account uses Google sign-in. Please continue with Google." });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
    
     if (!isPasswordValid) {
@@ -54,9 +62,75 @@ async function loginController(req, res) {
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
 
-    return res.status(200).json({ message: "Login successful", user, token });
+    const safeUser = await userModel.findById(user._id).select('-password');
+    return res.status(200).json({ message: "Login successful", user: safeUser, token });
 
 
+}
+
+// GOOGLE LOGIN CONTROLLER (Google Identity Services ID token)
+async function googleLoginController(req, res) {
+    try {
+        const { credential } = req.body || {};
+        if (!credential) {
+            return res.status(400).json({ message: 'Missing Google credential' });
+        }
+
+        const googleClientId = process.env.GOOGLE_CLIENT_ID;
+        if (!googleClientId) {
+            return res.status(500).json({ message: 'Server misconfigured: GOOGLE_CLIENT_ID missing' });
+        }
+
+        const client = new OAuth2Client(googleClientId);
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: googleClientId,
+        });
+        const payload = ticket.getPayload();
+
+        const email = payload?.email;
+        const emailVerified = payload?.email_verified;
+        const googleSub = payload?.sub;
+
+        if (!email || !googleSub) {
+            return res.status(400).json({ message: 'Invalid Google token payload' });
+        }
+        if (!emailVerified) {
+            return res.status(400).json({ message: 'Google account email not verified' });
+        }
+
+        let user = await userModel.findOne({ $or: [{ googleSub }, { email }] });
+
+        if (!user) {
+            user = await userModel.create({
+                name: payload?.name || payload?.given_name || 'User',
+                email,
+                provider: 'google',
+                googleSub,
+                avatar: payload?.picture,
+                // password is optional for google users; keep a random hash for safety
+                password: await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10),
+            });
+        } else {
+            const updates = {};
+            if (user.provider !== 'google') updates.provider = 'google';
+            if (!user.googleSub) updates.googleSub = googleSub;
+            if (payload?.picture && user.avatar !== payload.picture) updates.avatar = payload.picture;
+            if (payload?.name && user.name !== payload.name) updates.name = payload.name;
+            if (Object.keys(updates).length) {
+                user = await userModel.findByIdAndUpdate(user._id, updates, { new: true });
+            }
+        }
+
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
+
+        const safeUser = await userModel.findById(user._id).select('-password');
+        return res.status(200).json({ message: 'Login successful', user: safeUser, token });
+    } catch (error) {
+        console.error('Google login error:', error?.message || error);
+        return res.status(400).json({ message: 'Google login failed' });
+    }
 }
 
 //LOGOUT CONTROLLER
@@ -65,5 +139,5 @@ async function logoutController(req, res) {
     return res.status(200).json({ message: "Logout successful" });
 }
 module.exports = {
-    registerController, loginController, logoutController
+    registerController, loginController, logoutController, googleLoginController
 };
