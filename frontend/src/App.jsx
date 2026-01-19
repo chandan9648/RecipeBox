@@ -1,5 +1,5 @@
 import React from "react";
-import Nav from "./Components/Nav"; 
+import Nav from "./Components/Nav";
 import MainRoutes from "./routes/Main.routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,7 +11,7 @@ const App = () => {
       <Nav />
       <MainRoutes />
       <ToastContainer />
-      
+
     </div>
   );
 };

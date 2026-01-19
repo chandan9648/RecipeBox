@@ -6,8 +6,8 @@ const { OAuth2Client } = require('google-auth-library');
 
 
 //REGISTER CONTROLLER
- async function registerController(req, res) {
-     const { name, email, password, role, adminSecret } = req.body;
+async function registerController(req, res) {
+    const { name, email, password, role, adminSecret } = req.body;
 
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
@@ -54,21 +54,20 @@ async function loginController(req, res) {
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-   
+
     if (!isPasswordValid) {
         return res.status(400).json({ message: "Invalid credentials" });
     }
-  
+
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
 
     const safeUser = await userModel.findById(user._id).select('-password');
     return res.status(200).json({ message: "Login successful", user: safeUser, token });
 
-
 }
 
-// GOOGLE LOGIN CONTROLLER (Google Identity Services ID token)
+// GOOGLE LOGIN CONTROLLER 
 async function googleLoginController(req, res) {
     try {
         const { credential } = req.body || {};

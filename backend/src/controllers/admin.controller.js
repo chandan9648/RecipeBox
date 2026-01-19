@@ -1,6 +1,7 @@
 const userModel = require('../models/auth.model');
 const Recipe = require('../models/recipe.model');
 
+//ADMIN STATS CONTROLLER
 async function getAdminStats(_req, res) {
   const usersCount = await userModel.countDocuments({ role: { $ne: 'admin' } });
   const recipesCount = await Recipe.countDocuments({});
@@ -8,6 +9,7 @@ async function getAdminStats(_req, res) {
   return res.json({ usersCount, recipesCount });
 }
 
+//USER RECIPE STATS CONTROLLER
 async function getUserRecipeStats(_req, res) {
   try {
     const users = await userModel.aggregate([
@@ -39,6 +41,7 @@ async function getUserRecipeStats(_req, res) {
   }
 }
 
+//DELETE USER CONTROLLER
 async function deleteUser(req, res) {
   try {
     const { id } = req.params;

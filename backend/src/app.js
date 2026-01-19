@@ -23,6 +23,4 @@ app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/admin', adminRoutes);
 
-
-
 module.exports = app;

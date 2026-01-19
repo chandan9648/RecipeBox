@@ -6,8 +6,6 @@ const instance = axios.create({
   withCredentials: true,
 });
 
-//interceptors
-
 // Add a request interceptor
 instance.interceptors.request.use(
   function (config) {
@@ -19,7 +17,7 @@ instance.interceptors.request.use(
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // console.log("request----->", config?.method, config?.url);
+   
     return config;
   },
   function (error) {
@@ -30,7 +28,7 @@ instance.interceptors.request.use(
 // Add a response interceptor
 instance.interceptors.response.use(
   function (response) {
-    // console.log("response---->", response?.status, response?.config?.url);
+    
     return response;
   },
   function (error) {

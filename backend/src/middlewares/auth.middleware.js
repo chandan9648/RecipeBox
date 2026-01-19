@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/auth.model');
 
-// Authenticate via Authorization: Bearer <token> or cookie 'token'
+// Authenticate via Authorization
 async function authenticate(req, res, next) {
   try {
     let token;
@@ -18,7 +18,7 @@ async function authenticate(req, res, next) {
     const user = await userModel.findById(payload.id).select('-password');
     if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
-    req.user = user; // attach full user
+    req.user = user; 
     next();
   } catch (err) {
     console.error('Auth error:', err.message);
