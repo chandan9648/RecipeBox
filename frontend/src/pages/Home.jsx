@@ -126,7 +126,7 @@ const Home = () => {
           <div>
             <h3 className="font-bold text-white mb-2">Follow</h3>
             <div className="flex gap-3 text-xl">
-              <a aria-label="Twitter" href="https://x.com/chandan_io" className="hover:text-white"><i className="ri-twitter-x-line"></i></a>
+              <a aria-label="Twitter" href="https://x.com/chandandotio" className="hover:text-white"><i className="ri-twitter-x-line"></i></a>
               <a aria-label="Instagram" href="https://instagram.com/mr.chandan.156" className="hover:text-white"><i className="ri-instagram-line"></i></a>
               <a aria-label="GitHub" href="https://github.com/chandan9648" className="hover:text-white"><i className="ri-github-line"></i></a>
             </div>
