@@ -112,7 +112,7 @@ const AdminDashboard = () => {
         <button
           onClick={loadDashboard}
           disabled={loading}
-          className="bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white px-5 py-2 rounded-lg font-medium"
+          className="bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-5 py-2 rounded-lg font-medium cursor-pointer"
         >
           {loading ? "Refreshing..." : "Refresh"}
         </button>
