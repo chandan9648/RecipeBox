@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../utils/axios.jsx";
 import { useAuth } from "../context/auth";
+import { toast } from "react-toastify";
 import { Mail, Trash2, User, UtensilsCrossed } from "lucide-react";
 import {
   Cell,
@@ -94,8 +95,10 @@ const AdminDashboard = () => {
       try {
         await api.delete(`admin/users/${userId}`);
         await loadDashboard();
+        toast.success(`${name} deleted successfully`);
       } catch (e) {
         setError(e?.response?.data?.message || "Failed to delete user");
+        toast.error(e?.response?.data?.message || "Failed to delete user");
       } finally {
         setDeletingUserId(null);
       }
@@ -170,7 +173,7 @@ const AdminDashboard = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleDeleteUser(u)}
+                    onClick={() => handleDeleteUser(u)} 
                     disabled={loading || deletingUserId === u?.userId}
                     title="Delete user"
                     className="h-9 w-9  rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center disabled:opacity-60 cursor-pointer"
