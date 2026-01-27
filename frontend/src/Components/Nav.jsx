@@ -34,7 +34,7 @@ const Nav = () => {
           Recipe<span className="text-red-700">Box</span>
         </NavLink>
 
-        {/* Desktop links */}
+        {/* Desktop */}
         <div className="hidden md:flex gap-6 text-black font-semibold">
           {adminOnlyView ? (
             <>
