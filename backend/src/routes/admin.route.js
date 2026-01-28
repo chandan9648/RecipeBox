@@ -4,7 +4,7 @@ const { getAdminStats, getUserRecipeStats, deleteUser } = require('../controller
 
 const router = express.Router();
 
-// Admin-only stats (counts only, no details)
+// Admin-only stats (counts only)
 router.get('/stats', authenticate, authorizeRoles('admin'), getAdminStats);
 
 // Admin-only detailed stats: users + their recipe counts
