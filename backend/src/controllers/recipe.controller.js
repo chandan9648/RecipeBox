@@ -1,10 +1,12 @@
 const Recipe = require('../models/recipe.model');
 
+//list all recipes
 async function listRecipes(_req, res) {
   const recipes = await Recipe.find({}).sort({ createdAt: -1 });
   return res.json({ recipes });
 }
 
+//get recipe by id
 async function getRecipeById(req, res) {
   const { id } = req.params;
   const recipe = await Recipe.findById(id);
@@ -12,6 +14,7 @@ async function getRecipeById(req, res) {
   return res.json({ recipe });
 }
 
+//create recipe
 async function createRecipe(req, res) {
   const { title, image, desc, chef, category, ingr, inst } = req.body || {};
 
@@ -36,6 +39,7 @@ async function createRecipe(req, res) {
   return res.status(201).json({ message: 'Recipe created', recipe });
 }
 
+//update recipe
 async function updateRecipe(req, res) {
   const { id } = req.params;
   const existing = await Recipe.findById(id);
@@ -60,6 +64,7 @@ async function updateRecipe(req, res) {
   return res.json({ message: 'Recipe updated', recipe: existing });
 }
 
+//delete recipe
 async function deleteRecipe(req, res) {
   const { id } = req.params;
   const existing = await Recipe.findById(id);
