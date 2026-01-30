@@ -11,7 +11,6 @@ const App = () => {
       <Nav />
       <MainRoutes />
       <ToastContainer />
-
     </div>
   );
 };
