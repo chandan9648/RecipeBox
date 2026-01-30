@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Shared API client for backend
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://recipebox-6kid.onrender.com/api/",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://recipebox-whr8.onrender.com/api/",
   withCredentials: true,
 });
 
