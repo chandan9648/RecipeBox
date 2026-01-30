@@ -21,7 +21,7 @@ const Register = () => {
 
     try {
   
-  const res = await axios.post("https://recipebox-gi57.onrender.com/api/auth/register", {
+  const res = await axios.post("https://recipebox-6kid.onrender.com/api/auth/register", {
   name, email, password, role
   });
 
