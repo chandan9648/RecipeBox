@@ -27,11 +27,15 @@ async function registerController(req, res) {
         }
     }
 
-    const otp = otpGenerator.generate(6, {
-        upperCaseAlphabets: false,
-        lowerCaseAlphabets: false,
-        specialChars: false,
-    });
+    // Admin accounts: skip OTP verification (admin creation is already gated by ADMIN_SECRET)
+    const shouldVerifyViaOtp = finalRole !== 'admin';
+    const otp = shouldVerifyViaOtp
+        ? otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+        })
+        : null;
 
     const user = await userModel.create({
         name,
@@ -40,16 +44,20 @@ async function registerController(req, res) {
         provider: 'local',
         role: finalRole,
         otp,
-        otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
-        isVerified: false,
+        otpExpiry: shouldVerifyViaOtp ? new Date(Date.now() + 5 * 60 * 1000) : null,
+        isVerified: shouldVerifyViaOtp ? false : true,
     });
 
    
 
-    await sendEmail(email, "Your OTP for RecipeBox Registration", `Your OTP is: ${otp}. It expires in 5 minutes.`);
+    if (shouldVerifyViaOtp) {
+        await sendEmail(email, "Your OTP for RecipeBox Registration", `Your OTP is: ${otp}. It expires in 5 minutes.`);
+        const safeUser = await userModel.findById(user._id).select('-password');
+        return res.status(201).json({ message: "OTP sent to email.", user: safeUser });
+    }
 
     const safeUser = await userModel.findById(user._id).select('-password');
-    return res.status(201).json({ message: "OTP sent to email.", user: safeUser });
+    return res.status(201).json({ message: "User registered successfully", user: safeUser });
 
 }
 
@@ -71,7 +79,8 @@ async function loginController(req, res) {
         return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    if (!user.isVerified) {
+    // Only non-admin local accounts require OTP verification
+    if (!user.isVerified && user.role !== 'admin') {
         return res.status(401).json({ message: "Verify email first" });
     }
 
