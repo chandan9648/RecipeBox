@@ -64,10 +64,14 @@ async function registerController(req, res) {
             } catch (err) {
                 // Prevent "half-created" unverified accounts when email service is down/misconfigured
                 await userModel.findByIdAndDelete(user._id);
-                console.error('registerController sendEmail error:', err?.message || err);
-                return res.status(503).json({
+                console.error('registerController sendEmail error:', err);
+                const payload = {
                     message: 'Unable to send OTP email right now. Please try again later.',
-                });
+                };
+                if (process.env.NODE_ENV !== 'production') {
+                    payload.details = err?.message || String(err);
+                }
+                return res.status(503).json(payload);
             }
 
             const safeUser = await userModel.findById(user._id).select('-password');
