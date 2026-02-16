@@ -8,6 +8,7 @@ const VerifyOtp = () => {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(5 * 60);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -22,10 +23,24 @@ const VerifyOtp = () => {
     if (finalEmail) setEmail(String(finalEmail));
   }, [location?.state?.email, storedEmail]);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const isExpired = secondsLeft <= 0;
+  const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+  const seconds = String(secondsLeft % 60).padStart(2, "0");
+  const countdownText = `${minutes}:${seconds}`;
+
   const verify = async (e) => {
     e?.preventDefault?.();
     if (!email) return toast.error("Email missing. Please register again.");
     if (!otp) return toast.error("Please enter OTP");
+    if (isExpired) return toast.error("OTP expired. Please register again.");
 
     try {
       setLoading(true);
@@ -51,6 +66,13 @@ const VerifyOtp = () => {
         <p className="text-sm text-center text-black/70 mb-6">
           Enter the OTP sent to your email.
         </p>
+
+        <div className="text-sm text-center mb-4">
+          <span className="text-black/70">Time left: </span>
+          <span className={isExpired ? "font-semibold text-red-700" : "font-semibold"}>
+            {countdownText}
+          </span>
+        </div>
 
         <form onSubmit={verify} className="space-y-4">
           <div>
@@ -79,10 +101,10 @@ const VerifyOtp = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || isExpired}
             className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 cursor-pointer"
           >
-            {loading ? "Verifying..." : "Verify"}
+            {loading ? "Verifying..." : isExpired ? "OTP Expired" : "Verify"}
           </button>
         </form>
       </div>
