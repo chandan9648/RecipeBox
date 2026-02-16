@@ -37,28 +37,6 @@ const Register = () => {
     }
   };
 
-//   // OTP Verification Component
-//   const VerifyOtp = () => {
-//   const [email, setEmail] = useState("");
-//   const [otp, setOtp] = useState("");
-
-//   const verify = async () => {
-//     await axios.post("/api/auth/verify-otp", {
-//       email,
-//       otp
-//     });
-
-//     alert("Verified!");
-//   };
-
-//   return (
-//     <>
-//       <input onChange={e => setEmail(e.target.value)} />
-//       <input onChange={e => setOtp(e.target.value)} />
-//       <button onClick={verify}>Verify</button>
-//     </>
-//   );
-// };
 
 
 
