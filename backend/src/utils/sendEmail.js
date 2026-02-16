@@ -18,7 +18,7 @@ exports.sendEmail = async (to, subject, text) => {
     ? nodemailer.createTransport({
         host,
         port,
-        secure: port === 465,
+        secure: false,
         auth: {
           user: process.env.EMAIL,
           pass,
