@@ -154,9 +154,14 @@ const AdminDashboard = () => {
                     <div className="text-base font-bold text-gray-900">
                       {u?.name || "Unknown"}
                     </div>
-                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                    <div className="text-sm text-gray-600 flex items-center gap-2 min-w-0">
                       <Mail className="h-4 w-4" />
-                      <span>{u?.email || "-"}</span>
+                      <span
+                        className="truncate"
+                        title={u?.email || ""}
+                      >
+                        {u?.email || "-"}
+                      </span>
                     </div>
                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
                       <UtensilsCrossed className="h-4 w-4" />
