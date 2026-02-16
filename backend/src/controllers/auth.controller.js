@@ -16,6 +16,7 @@ async function registerController(req, res) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     let finalRole = role === 'seller' ? 'seller' : 'user';
+    
     // Allow admin creation ONLY when explicitly enabled via env secret
     if (role === 'admin') {
         const secret = process.env.ADMIN_SECRET;
