@@ -1,19 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, NavLink, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import {Eye, EyeOff} from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/auth";
 import api from "../utils/axios.jsx";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading, ] = useState(false);
+  const [loading, setLoading,] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { setToken, setUser } = useAuth() || {};
+  const { setToken, setUser, user } = useAuth() || {};
   const googleBtnRef = useRef(null);
 
   const handleLogin = async (e) => {
@@ -21,26 +21,26 @@ const Login = () => {
     setLoading(true);
 
     try {
-  
+
       const res = await api.post(
         "auth/login",
         { email, password },
         { skipAuth: true }
       );
 
-  toast.success(res.data.message);
-  if (setToken) setToken(res.data.token);
-  if (setUser) setUser(res.data.user);
-  const from = location?.state?.from;
-  const role = res?.data?.user?.role;
-  navigate(from || (role === "admin" ? "/admin" : "/"));
+      toast.success(res.data.message);
+      if (setToken) setToken(res.data.token);
+      if (setUser) setUser(res.data.user);
+      const from = location?.state?.from;
+      const role = res?.data?.user?.role;
+      navigate(from || (role === "admin" ? "/admin" : "/"));
 
-  }catch (error) {
+    } catch (error) {
       console.error("Login error:", error);
       toast.error(error.response?.data?.message || "Login failed");
-  }finally {
+    } finally {
       setLoading(false);
-  }
+    }
   };
 
   useEffect(() => {
@@ -54,6 +54,7 @@ const Login = () => {
       return;
     }
 
+  
     let cancelled = false;
 
     const init = () => {
@@ -104,11 +105,11 @@ const Login = () => {
     return () => {
       cancelled = true;
     };
-  }, [location?.state?.from, navigate, setToken, setUser]);
+  }, [location?.state?.from, navigate, setToken, setUser, user]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-rose-400 text-black">
-   
+
       <div className=" shadow-lg rounded-xl p-8 w-full max-w-md bg-red-300">
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
 
@@ -159,7 +160,7 @@ const Login = () => {
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-    
+
           <button
             type="submit"
             disabled={loading}

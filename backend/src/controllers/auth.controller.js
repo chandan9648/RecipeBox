@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
+const otpGenerator = require('otp-generator');
+const { sendEmail } = require('../utils/sendEmail');
 
 
 //REGISTER CONTROLLER
@@ -25,19 +27,29 @@ async function registerController(req, res) {
         }
     }
 
+    const otp = otpGenerator.generate(6, {
+        upperCaseAlphabets: false,
+        lowerCaseAlphabets: false,
+        specialChars: false,
+    });
+
     const user = await userModel.create({
         name,
         email,
         password: hashedPassword,
         provider: 'local',
-        role: finalRole
+        role: finalRole,
+        otp,
+        otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
+        isVerified: false,
     });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
+   
+
+    await sendEmail(email, "Your OTP for RecipeBox Registration", `Your OTP is: ${otp}. It expires in 5 minutes.`);
 
     const safeUser = await userModel.findById(user._id).select('-password');
-    return res.status(201).json({ message: "User registered successfully", user: safeUser, token });
+    return res.status(201).json({ message: "OTP sent to email.", user: safeUser });
 
 }
 
@@ -57,6 +69,10 @@ async function loginController(req, res) {
 
     if (!isPasswordValid) {
         return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    if (!user.isVerified) {
+        return res.status(401).json({ message: "Verify email first" });
     }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -107,6 +123,7 @@ async function googleLoginController(req, res) {
                 provider: 'google',
                 googleSub,
                 avatar: payload?.picture,
+                isVerified: true,
                 // password is optional for google users; keep a random hash for safety
                 password: await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10),
             });
@@ -116,6 +133,7 @@ async function googleLoginController(req, res) {
             if (!user.googleSub) updates.googleSub = googleSub;
             if (payload?.picture && user.avatar !== payload.picture) updates.avatar = payload.picture;
             if (payload?.name && user.name !== payload.name) updates.name = payload.name;
+            if (!user.isVerified) updates.isVerified = true;
             if (Object.keys(updates).length) {
                 user = await userModel.findByIdAndUpdate(user._id, updates, { new: true });
             }
@@ -137,6 +155,7 @@ async function logoutController(req, res) {
     res.clearCookie('token');
     return res.status(200).json({ message: "Logout successful" });
 }
+
 module.exports = {
     registerController, loginController, logoutController, googleLoginController
 };

@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "axios";
-import {Eye, EyeOff} from "lucide-react";
-import { useAuth } from "../context/auth";
+import { Eye, EyeOff } from "lucide-react";
+import api from "../utils/axios.jsx";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -13,38 +12,64 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { setToken, setUser } = useAuth() || {};
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-  
-  const res = await axios.post("https://recipebox-whr8.onrender.com/api/auth/register", {
-  name, email, password, role
-  });
 
-  toast.success(res.data.message);
-  if (setToken) setToken(res.data.token);
-  if (setUser) setUser(res.data.user);
-  navigate("/login");
+      const res = await api.post(
+        "auth/register",
+        { name, email, password, role },
+        { skipAuth: true }
+      );
 
-  }catch (error) {
+      toast.success(res.data.message);
+      localStorage.setItem("pendingVerifyEmail", email);
+      navigate("/verify-otp", { state: { email } });
+
+    } catch (error) {
       console.error("Registration error:", error);
       toast.error(error.response?.data?.message || "Registration failed");
-  }finally {
+    } finally {
       setLoading(false);
-  }
+    }
   };
+
+//   // OTP Verification Component
+//   const VerifyOtp = () => {
+//   const [email, setEmail] = useState("");
+//   const [otp, setOtp] = useState("");
+
+//   const verify = async () => {
+//     await axios.post("/api/auth/verify-otp", {
+//       email,
+//       otp
+//     });
+
+//     alert("Verified!");
+//   };
+
+//   return (
+//     <>
+//       <input onChange={e => setEmail(e.target.value)} />
+//       <input onChange={e => setOtp(e.target.value)} />
+//       <button onClick={verify}>Verify</button>
+//     </>
+//   );
+// };
+
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-rose-400 text-black">
-   
+
       <div className=" shadow-lg rounded-xl p-8 w-full max-w-md bg-red-300">
         <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
 
         <form onSubmit={handleRegister} className="space-y-4">
-              <div>
+          <div>
             <label className="block text-sm font-medium mb-1">Name</label>
             <input
               type="text"
@@ -111,7 +136,7 @@ const Register = () => {
         </form>
 
         <p className="text-sm text-center mt-4">
-           Have an account?{" "}
+          Have an account?{" "}
           <NavLink to="/login" className="text-indigo-600 hover:underline">
             Login
           </NavLink>

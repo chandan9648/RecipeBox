@@ -12,6 +12,7 @@ import Fav from "../pages/Fav";
 import Register from "../pages/Register";
 import AdminDashboard from "../pages/AdminDashboard";
 import { useAuth } from "../context/auth";
+import VerifyOtp from "../pages/verifyOtp";
 
 const SellerRoute = ({ children }) => {
   const location = useLocation();
@@ -73,7 +74,9 @@ const MainRoutes = () => {
         <Route path="/fav" element={<UserOnlyRoute><Fav /></UserOnlyRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="*" element={<PageNotFound />} />
+        
       </Routes>
     </div>
   );
