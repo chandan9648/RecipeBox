@@ -30,7 +30,12 @@ exports.verifyOtp = async (req, res) => {
     user.otpExpiry = null;
     await user.save();
 
-    await sendEmail(email, "Welcome!", "Welcome to RecipeBox 🎉");
+    // Welcome email is best-effort; don't fail verification if email is misconfigured
+    try {
+      await sendEmail(email, "Welcome!", "Welcome to RecipeBox 🎉");
+    } catch (e) {
+      console.warn('Welcome email failed:', e?.message || e);
+    }
 
     return res.json({ message: "Account verified!" });
   } catch (err) {

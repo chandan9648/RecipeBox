@@ -23,4 +23,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Error handler (keeps API responses consistent)
+app.use((err, req, res, next) => {
+	console.error('Unhandled error:', err);
+	const status = err?.statusCode || err?.status || 500;
+	const payload = { message: err?.message || 'Internal Server Error' };
+	if (process.env.NODE_ENV !== 'production') {
+		payload.stack = err?.stack;
+	}
+	res.status(status).json(payload);
+});
+
 module.exports = app;

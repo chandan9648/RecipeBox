@@ -9,56 +9,77 @@ const { sendEmail } = require('../utils/sendEmail');
 
 //REGISTER CONTROLLER
 async function registerController(req, res) {
-    const { name, email, password, role, adminSecret } = req.body;
+    try {
+        const { name, email, password, role, adminSecret } = req.body || {};
 
-    const existingUser = await userModel.findOne({ email });
-    if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    let finalRole = role === 'seller' ? 'seller' : 'user';
-    
-    // Allow admin creation ONLY when explicitly enabled via env secret
-    if (role === 'admin') {
-        const secret = process.env.ADMIN_SECRET;
-        if (secret && adminSecret && String(adminSecret) === String(secret)) {
-            finalRole = 'admin';
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Name, email and password are required' });
         }
-    }
+        if (typeof password !== 'string' || password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+        }
 
-    // Admin accounts: skip OTP verification (admin creation is already gated by ADMIN_SECRET)
-    const shouldVerifyViaOtp = finalRole !== 'admin';
-    const otp = shouldVerifyViaOtp
-        ? otpGenerator.generate(6, {
-            upperCaseAlphabets: false,
-            lowerCaseAlphabets: false,
-            specialChars: false,
-        })
-        : null;
+        const normalizedEmail = String(email).toLowerCase().trim();
 
-    const user = await userModel.create({
-        name,
-        email,
-        password: hashedPassword,
-        provider: 'local',
-        role: finalRole,
-        otp,
-        otpExpiry: shouldVerifyViaOtp ? new Date(Date.now() + 5 * 60 * 1000) : null,
-        isVerified: shouldVerifyViaOtp ? false : true,
-    });
+        const existingUser = await userModel.findOne({ email: normalizedEmail });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
 
-   
+        const hashedPassword = await bcrypt.hash(String(password), 10);
+        let finalRole = role === 'seller' ? 'seller' : 'user';
 
-    if (shouldVerifyViaOtp) {
-        await sendEmail(email, "Your OTP for RecipeBox Registration", `Your OTP is: ${otp}. It expires in 5 minutes.`);
+        // Allow admin creation ONLY when explicitly enabled via env secret
+        if (role === 'admin') {
+            const secret = process.env.ADMIN_SECRET;
+            if (secret && adminSecret && String(adminSecret) === String(secret)) {
+                finalRole = 'admin';
+            }
+        }
+
+        // Admin accounts: skip OTP verification (admin creation is already gated by ADMIN_SECRET)
+        const shouldVerifyViaOtp = finalRole !== 'admin';
+        const otp = shouldVerifyViaOtp
+            ? otpGenerator.generate(6, {
+                upperCaseAlphabets: false,
+                lowerCaseAlphabets: false,
+                specialChars: false,
+            })
+            : null;
+
+        const user = await userModel.create({
+            name: String(name).trim(),
+            email: normalizedEmail,
+            password: hashedPassword,
+            provider: 'local',
+            role: finalRole,
+            otp,
+            otpExpiry: shouldVerifyViaOtp ? new Date(Date.now() + 5 * 60 * 1000) : null,
+            isVerified: shouldVerifyViaOtp ? false : true,
+        });
+
+        if (shouldVerifyViaOtp) {
+            try {
+                await sendEmail(normalizedEmail, 'Your OTP for RecipeBox Registration', `Your OTP is: ${otp}. It expires in 5 minutes.`);
+            } catch (err) {
+                // Prevent "half-created" unverified accounts when email service is down/misconfigured
+                await userModel.findByIdAndDelete(user._id);
+                console.error('registerController sendEmail error:', err?.message || err);
+                return res.status(503).json({
+                    message: 'Unable to send OTP email right now. Please try again later.',
+                });
+            }
+
+            const safeUser = await userModel.findById(user._id).select('-password');
+            return res.status(201).json({ message: 'OTP sent to email.', user: safeUser });
+        }
+
         const safeUser = await userModel.findById(user._id).select('-password');
-        return res.status(201).json({ message: "OTP sent to email.", user: safeUser });
+        return res.status(201).json({ message: 'User registered successfully', user: safeUser });
+    } catch (err) {
+        console.error('registerController error:', err);
+        return res.status(500).json({ message: 'Registration failed' });
     }
-
-    const safeUser = await userModel.findById(user._id).select('-password');
-    return res.status(201).json({ message: "User registered successfully", user: safeUser });
-
 }
 
 //LOGIN CONTROLLER
