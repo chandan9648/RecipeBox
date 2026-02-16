@@ -107,15 +107,15 @@ const AdminDashboard = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="bg-red-100 rounded-lg p-4 flex items-center justify-between shadow-sm">
-        <h1 className="text-xl md:text-2xl font-bold text-black">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
+      <div className="bg-red-100 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-black">
           Welcome back, {user?.name || "Admin"}! 
         </h1>
         <button
           onClick={loadDashboard}
           disabled={loading}
-          className="bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-5 py-2 rounded-lg font-medium cursor-pointer"
+          className="bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white px-5 py-2 rounded-lg font-medium cursor-pointer w-full sm:w-auto"
         >
           {loading ? "Refreshing..." : "Refresh"}
         </button>
@@ -130,13 +130,17 @@ const AdminDashboard = () => {
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.35fr_1fr]">
         {/* Left: User list */}
         <div className="bg-green-50 rounded-2xl p-4 md:p-6 shadow-sm border border-green-100">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <h2 className="text-sm font-extrabold tracking-wider text-gray-800">
               USER INFO
             </h2>
-            <div className="text-xs text-gray-600">
-              Total users: <span className="font-semibold">{stats.usersCount}</span>
-              {" "}• Total recipes: <span className="font-semibold">{stats.recipesCount}</span>
+            <div className="text-xs text-gray-600 flex flex-wrap gap-x-2">
+              <span>
+                Total users: <span className="font-semibold">{stats.usersCount}</span>
+              </span>
+              <span>
+                • Total recipes: <span className="font-semibold">{stats.recipesCount}</span>
+              </span>
             </div>
           </div>
 
@@ -144,27 +148,27 @@ const AdminDashboard = () => {
             {(userRecipeStats?.length ? userRecipeStats : []).map((u) => (
               <div
                 key={u?.userId || u?.email}
-                className="bg-white rounded-xl border border-green-100 shadow-sm p-4 flex items-center justify-between"
+                className="bg-white rounded-xl border border-green-100 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3"
               >
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 h-9 w-9 rounded-full bg-green-100 flex items-center justify-center">
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <div className="mt-1 h-9 w-9 rounded-full bg-green-100 flex items-center justify-center shrink-0">
                     <User className="h-5 w-5 text-green-700" />
                   </div>
-                  <div>
-                    <div className="text-base font-bold text-gray-900">
+                  <div className="min-w-0">
+                    <div className="text-base font-bold text-gray-900 truncate" title={u?.name || ""}>
                       {u?.name || "Unknown"}
                     </div>
                     <div className="text-sm text-gray-600 flex items-center gap-2 min-w-0">
-                      <Mail className="h-4 w-4" />
+                      <Mail className="h-4 w-4 shrink-0" />
                       <span
-                        className="truncate"
+                        className="truncate flex-1"
                         title={u?.email || ""}
                       >
                         {u?.email || "-"}
                       </span>
                     </div>
                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
-                      <UtensilsCrossed className="h-4 w-4" />
+                      <UtensilsCrossed className="h-4 w-4 shrink-0" />
                       <span>
                         Total recipes: <span className="font-semibold">{Number(u?.recipeCount || 0)}</span>
                       </span>
@@ -172,7 +176,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0 w-full justify-end sm:w-auto">
                   <div className="text-sm font-semibold text-gray-700">
                     {Number(u?.recipeCount || 0)}
                   </div>
