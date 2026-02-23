@@ -58,7 +58,7 @@ const AdminDashboard = () => {
       }))
       .filter((d) => d.value > 0);
 
-    // Keep chart readable: show top 8 + Others
+  //pie chart portion
     const top = normalized.slice(0, 8);
     const rest = normalized.slice(8);
     const othersValue = rest.reduce((sum, d) => sum + d.value, 0);
