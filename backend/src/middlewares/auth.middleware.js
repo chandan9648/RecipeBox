@@ -34,4 +34,27 @@ function authorizeRoles(...roles) {
   }
 }
 
-module.exports = { authenticate, authorizeRoles };
+async function optionalAuth(req, res, next) {
+  try {
+    let token;
+    const authHeader = req.headers.authorization || '';
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    if (token) {
+      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await userModel.findById(payload.id).select('-password');
+      if (user) {
+        req.user = user; 
+      }
+    }
+  } catch (err) {
+    // skip error
+  }
+  next();
+}
+
+module.exports = { authenticate, authorizeRoles, optionalAuth };

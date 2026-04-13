@@ -1,8 +1,9 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 
-const RecipeCard = ({ recipe }) => {
-  const { id, title, image, desc, chef, category } = recipe;
+const RecipeCard = ({ recipe, showStatus }) => {
+  const { id: rId, _id, title, image, desc, chef, category, status } = recipe;
+  const id = rId || _id;
   const safeTitle = title || "Untitled";
   const safeChef = chef || "Anonymous";
   const safeDesc = (desc || "").slice(0, 100);
@@ -15,8 +16,13 @@ const RecipeCard = ({ recipe }) => {
     >
       <div className="relative">
         {category && (
-          <span className="absolute top-2 left-2 z-10 bg-rose-600 text-white text-xs px-2 py-0.5 rounded-full">
+          <span className="absolute top-2 left-2 z-10 bg-rose-600 text-white text-xs px-2 py-0.5 rounded-full shadow-sm">
             {category}
+          </span>
+        )}
+        {showStatus && status && (
+          <span className={`absolute top-2 right-2 z-10 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm capitalize ${status === 'approved' ? 'bg-green-500' : status === 'rejected' ? 'bg-red-500' : 'bg-orange-500'}`}>
+            {status}
           </span>
         )}
         <img className="w-full h-40 object-cover rounded-md" src={cover} alt={safeTitle} />

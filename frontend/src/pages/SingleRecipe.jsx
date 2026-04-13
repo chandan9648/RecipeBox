@@ -14,8 +14,25 @@ const SingleRecipe = () => {
   const params = useParams();
   const { isSeller, user } = useAuth() || {};
   
-  // Match id regardless of it being number (seed) or string (nanoid)
-  const recipe = data.find((r) => String(r.id) === String(params.id));
+  const [localRecipe, setLocalRecipe] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const [fetchError, setFetchError] = React.useState(null);
+
+  useEffect(() => {
+    const existing = data.find((r) => String(r.id || r._id) === String(params.id));
+    if (existing) {
+      setLocalRecipe(existing);
+    } else {
+      setLoading(true);
+      setFetchError(null);
+      api.get(`recipes/${params.id}`)
+        .then(res => setLocalRecipe(res.data.recipe))
+        .catch(err => setFetchError(err.response?.data?.message || "Recipe not found"))
+        .finally(() => setLoading(false));
+    }
+  }, [data, params.id]);
+
+  const recipe = localRecipe || data.find((r) => String(r.id || r._id) === String(params.id));
 
   const [reviewRating, setReviewRating] = React.useState(5);
   const [reviewComment, setReviewComment] = React.useState("");
@@ -24,7 +41,6 @@ const SingleRecipe = () => {
     defaultValues: {},
   });
 
-  // When recipe becomes available (after data load), populate form
   useEffect(() => {
     if (recipe) {
       reset({
@@ -45,10 +61,11 @@ const SingleRecipe = () => {
       const updated = res?.data?.recipe;
       if (!updated) throw new Error('Recipe update failed');
 
-      const index = data.findIndex((r) => String(r.id) === String(params.id));
+      const index = data.findIndex((r) => String(r.id || r._id) === String(params.id));
       const copydata = [...data];
       if (index >= 0) copydata[index] = updated;
       setData(copydata);
+      setLocalRecipe(updated);
 
       toast.success("Recipe Updated!");
       reset(updated);
@@ -62,7 +79,7 @@ const SingleRecipe = () => {
     if (!confirm("Delete this recipe?")) return;
     try {
       await api.delete(`recipes/${params.id}`);
-      const filterdata = data.filter((r) => String(r.id) !== String(params.id));
+      const filterdata = data.filter((r) => String(r.id || r._id) !== String(params.id));
       setData(filterdata);
       toast.info("Recipe Deleted!");
       navigate("/recipes");
@@ -72,25 +89,22 @@ const SingleRecipe = () => {
     }
   };
 
-  const isFav = recipe ? favorites.some((f) => String(f.id) === String(recipe.id)) : false;
+  const isFav = recipe ? favorites.some((f) => String(f.id || f._id) === String(recipe.id || recipe._id)) : false;
 
   const FavHandler = () => {
     if (isFav) return;
-    // Require login for favorites
     if (!user) {
       navigate("/login", { state: { from: location.pathname } });
       return;
     }
     const updated = [...favorites, recipe];
     setFavorites(updated);
-    // toast.success("Added to Favorites");
   };
 
   const UnfavHandler = () => {
     if (!isFav) return;
-    const updated = favorites.filter((f) => String(f.id) !== String(recipe.id));
+    const updated = favorites.filter((f) => String(f.id || f._id) !== String(recipe.id || recipe._id));
     setFavorites(updated);
-    // toast.info("Removed from Favorites");
   };
 
   const LikeHandler = async () => {
@@ -103,10 +117,13 @@ const SingleRecipe = () => {
       const updated = res?.data?.recipe;
       if (!updated) return;
       
-      const index = data.findIndex((r) => String(r.id) === String(params.id));
-      const copydata = [...data];
-      if (index >= 0) copydata[index] = updated;
-      setData(copydata);
+      const index = data.findIndex((r) => String(r.id || r._id) === String(params.id));
+      if (index >= 0) {
+        const copydata = [...data];
+        copydata[index] = updated;
+        setData(copydata);
+      }
+      setLocalRecipe(updated);
     } catch (error) {
       console.error('Like error:', error);
       toast.error('Failed to like recipe');
@@ -124,10 +141,13 @@ const SingleRecipe = () => {
       const updated = res?.data?.recipe;
       if (!updated) return;
       
-      const index = data.findIndex((r) => String(r.id) === String(params.id));
-      const copydata = [...data];
-      if (index >= 0) copydata[index] = updated;
-      setData(copydata);
+      const index = data.findIndex((r) => String(r.id || r._id) === String(params.id));
+      if (index >= 0) {
+        const copydata = [...data];
+        copydata[index] = updated;
+        setData(copydata);
+      }
+      setLocalRecipe(updated);
       
       toast.success("Review added!");
       setReviewComment("");
@@ -139,10 +159,8 @@ const SingleRecipe = () => {
   };
 
   if (!recipe) {
-    // Data loaded but recipe not found
-    if (data.length > 0) return <div className="p-4">Recipe not found.</div>;
-    // Still loading localStorage data
-    return <div className="p-4">Loading...</div>;
+    if (loading) return <div className="p-4 text-center font-semibold text-lg">Loading recipe full details...</div>;
+    return <div className="p-4 text-center text-red-500 font-semibold">{fetchError || "Recipe not found."}</div>;
   }
 
   const cover = recipe.image || "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?q=80&w=1200&auto=format&fit=crop";

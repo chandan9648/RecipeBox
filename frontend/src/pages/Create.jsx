@@ -36,10 +36,9 @@ const Create = () => {
       const created = res?.data?.recipe;
       if (!created) throw new Error('Recipe create failed');
 
-      setData([created, ...data]);
-      toast.success("Recipe Created Successfully");
+      toast.success("Recipe submitted for review by an Admin!");
       reset();
-      navigate("/recipes");
+      navigate("/my-recipes");
     } catch (error) {
       console.error('Create recipe error:', error);
       toast.error(error.response?.data?.message || 'Failed to create recipe');

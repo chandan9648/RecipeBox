@@ -2,7 +2,8 @@ const Recipe = require('../models/recipe.model');
 
 //list all recipes
 async function listRecipes(_req, res) {
-  const recipes = await Recipe.find({}).sort({ createdAt: -1 }).populate('reviews.user', 'name avatar');
+  const query = { status: { $nin: ['pending', 'rejected'] } };
+  const recipes = await Recipe.find(query).sort({ createdAt: -1 }).populate('reviews.user', 'name avatar');
   return res.json({ recipes });
 }
 
@@ -11,6 +12,14 @@ async function getRecipeById(req, res) {
   const { id } = req.params;
   const recipe = await Recipe.findById(id).populate('reviews.user', 'name avatar');
   if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+  const isApproved = !['pending', 'rejected'].includes(recipe.status);
+  const isCreatorAdmin = req.user && (req.user.role === 'admin' || String(recipe.createdBy) === String(req.user._id));
+
+  if (!isApproved && !isCreatorAdmin) {
+    return res.status(403).json({ message: 'Recipe is pending review by an admin' });
+  }
+
   return res.json({ recipe });
 }
 
@@ -133,6 +142,13 @@ async function addReview(req, res) {
   return res.json({ message: 'Review added', recipe });
 }
 
+//get my recipes
+async function getMyRecipes(req, res) {
+  const userId = req.user?._id;
+  const recipes = await Recipe.find({ createdBy: userId }).sort({ createdAt: -1 });
+  return res.json({ recipes });
+}
+
 module.exports = {
   listRecipes,
   getRecipeById,
@@ -141,4 +157,5 @@ module.exports = {
   deleteRecipe,
   toggleLike,
   addReview,
+  getMyRecipes,
 };

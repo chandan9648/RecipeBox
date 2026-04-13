@@ -7,14 +7,16 @@ const {
   deleteRecipe,
   toggleLike,
   addReview,
+  getMyRecipes,
 } = require('../controllers/recipe.controller');
-const { authenticate, authorizeRoles } = require('../middlewares/auth.middleware');
+const { authenticate, authorizeRoles, optionalAuth } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-// Public
+// Public / Mixed
 router.get('/', listRecipes);
-router.get('/:id', getRecipeById);
+router.get('/my-recipes', authenticate, authorizeRoles('seller'), getMyRecipes);
+router.get('/:id', optionalAuth, getRecipeById);
 
 // Seller-only
 router.post('/', authenticate, authorizeRoles('seller'), createRecipe);

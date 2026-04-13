@@ -14,6 +14,7 @@ const recipeSchema = new mongoose.Schema(
     ingr: { type: String, trim: true },
     inst: { type: String, trim: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }],
     reviews: [
       {

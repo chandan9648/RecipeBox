@@ -63,4 +63,32 @@ async function deleteUser(req, res) {
   }
 }
 
-module.exports = { getAdminStats, getUserRecipeStats, deleteUser };
+//GET PENDING RECIPES
+async function getPendingRecipes(_req, res) {
+  try {
+    const recipes = await Recipe.find({ status: 'pending' }).populate('createdBy', 'name email').sort({ createdAt: -1 });
+    return res.json({ recipes });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to fetch pending recipes' });
+  }
+}
+
+//UPDATE RECIPE STATUS
+async function updateRecipeStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+    
+    const recipe = await Recipe.findByIdAndUpdate(id, { status }, { new: true });
+    if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+    
+    return res.json({ message: `Recipe ${status} successfully`, recipe });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to update recipe status' });
+  }
+}
+
+module.exports = { getAdminStats, getUserRecipeStats, deleteUser, getPendingRecipes, updateRecipeStatus };

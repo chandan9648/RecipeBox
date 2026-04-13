@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../utils/axios.jsx";
 import { useAuth } from "../context/auth";
 import { toast } from "react-toastify";
@@ -16,6 +17,7 @@ const AdminDashboard = () => {
   const { user } = useAuth() || {};
   const [stats, setStats] = useState({ usersCount: 0, recipesCount: 0 });
   const [userRecipeStats, setUserRecipeStats] = useState([]);
+  const [pendingRecipes, setPendingRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [error, setError] = useState("");
@@ -24,9 +26,10 @@ const AdminDashboard = () => {
     setLoading(true);
     setError("");
     try {
-      const [statsRes, userStatsRes] = await Promise.all([
+      const [statsRes, userStatsRes, pendingRes] = await Promise.all([
         api.get("admin/stats"),
         api.get("admin/user-recipe-stats"),
+        api.get("admin/recipes/pending"),
       ]);
 
       const usersCount = Number(statsRes?.data?.usersCount || 0);
@@ -37,6 +40,9 @@ const AdminDashboard = () => {
         ? userStatsRes.data.users
         : [];
       setUserRecipeStats(users);
+
+      const pendings = Array.isArray(pendingRes?.data?.recipes) ? pendingRes.data.recipes : [];
+      setPendingRecipes(pendings);
     } catch (e) {
       setError(e?.response?.data?.message || "Failed to load admin stats");
     } finally {
@@ -78,6 +84,18 @@ const AdminDashboard = () => {
     "#748ffc",
     "#94d82d",
   ];
+
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      setLoading(true);
+      await api.patch(`admin/recipes/${id}/status`, { status });
+      toast.success(`Recipe ${status}`);
+      await loadDashboard();
+    } catch(e) {
+      toast.error(e?.response?.data?.message || `Failed to ${status} recipe`);
+      setLoading(false);
+    }
+  }
 
   const handleDeleteUser = useCallback(
     async (u) => {
@@ -250,6 +268,37 @@ const AdminDashboard = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Bottom: Pending Reviews List */}
+      <div className="mt-6 bg-orange-50 rounded-2xl p-4 md:p-6 shadow-sm border border-orange-100">
+        <h2 className="text-lg font-extrabold text-gray-900 mb-4">Pending Recipe Approvals</h2>
+        
+        {pendingRecipes.length === 0 ? (
+          <div className="bg-white rounded-xl border border-orange-100 p-4 text-sm text-gray-600 text-center">
+            No recipes pending review.
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {pendingRecipes.map(recipe => (
+              <div key={recipe._id} className="bg-white rounded-xl border border-orange-100 shadow-sm overflow-hidden flex flex-col">
+                <Link to={`/recipes/details/${recipe._id}`} target="_blank">
+                  <img src={recipe.image || "https://via.placeholder.com/400x300?text=Pending"} alt="recipe" className="h-32 w-full object-cover hover:opacity-90 transition-opacity" />
+                </Link>
+                <div className="p-3 flex-1 flex flex-col">
+                  <Link to={`/recipes/details/${recipe._id}`} target="_blank" className="font-bold text-gray-900 line-clamp-1 hover:text-rose-600 hover:underline">
+                    {recipe.title || 'Untitled'}
+                  </Link>
+                  <div className="text-xs text-gray-500 mt-1 mb-2">By: {recipe.createdBy?.name || recipe.chef || 'Unknown'}</div>
+                  <div className="mt-auto flex gap-2">
+                    <button onClick={() => handleUpdateStatus(recipe._id, 'approved')} disabled={loading} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50">Approve</button>
+                    <button onClick={() => handleUpdateStatus(recipe._id, 'rejected')} disabled={loading} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50">Reject</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

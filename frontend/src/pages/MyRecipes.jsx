@@ -1,20 +1,31 @@
-import React, { useContext, useMemo } from "react";
-import { recipecontext } from "../context/recipecontext";
+import React, { useEffect, useState } from "react";
+import api from "../utils/axios.jsx";
 import RecipeCard from "../Components/RecipeCard";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/auth";
 
 const MyRecipes = () => {
-  const { data } = useContext(recipecontext);
   const { user } = useAuth() || {};
+  const [myRecipes, setMyRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const myRecipes = useMemo(() => {
-    if (!user) return [];
-    const userId = String(user._id || user.id);
-    return data
-      .filter((r) => String(r.createdBy) === userId)
-      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  }, [data, user]);
+  useEffect(() => {
+    let canceled = false;
+    const fetchMine = async () => {
+      try {
+        const res = await api.get('recipes/my-recipes');
+        if (!canceled) {
+          setMyRecipes(res.data.recipes || []);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (!canceled) setLoading(false);
+      }
+    };
+    if (user) fetchMine();
+    return () => { canceled = true };
+  }, [user]);
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -25,10 +36,12 @@ const MyRecipes = () => {
         </Link>
       </div>
 
-      {myRecipes.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-10 font-medium text-gray-800">Loading your recipes...</div>
+      ) : myRecipes.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {myRecipes.map((recipe) => (
-            <RecipeCard recipe={recipe} key={recipe.id} />
+            <RecipeCard recipe={recipe} key={recipe._id || recipe.id} showStatus={true} />
           ))}
         </div>
       ) : (
