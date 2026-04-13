@@ -114,6 +114,11 @@ const Nav = () => {
             <span className="flex items-center gap-2 text-black/80 select-none">
               <i className="ri-user-3-line"></i>
               <span className="max-w-[140px] truncate bg-pink-100 px-1 rounded-md" title={displayName}>{displayName}</span>
+              {user?.role === 'seller' ? (
+                <span className="text-xs font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded-full">Seller</span>
+              ) : (
+                <span className="text-xs font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded-full">User</span>
+              )}
             </span>
           )}
 
@@ -255,6 +260,11 @@ const Nav = () => {
             <div className="py-1 flex items-center gap-2 text-black/80 select-none">
               <i className="ri-user-3-line"></i>
               <span className="truncate" title={displayName}>{displayName}</span>
+              {user?.role === 'seller' ? (
+                <span className="text-xs font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded-full">Seller</span>
+              ) : (
+                <span className="text-xs font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded-full">User</span>
+              )}
             </div>
           )}
 
