@@ -80,14 +80,24 @@ const Nav = () => {
             <i className="ri-information-line mr-1"></i> About
           </NavLink>
           {isSeller && (
-          <NavLink
-            className={({ isActive }) =>
-              `hover:text-red-700 ${isActive ? "text-red-700 underline underline-offset-4" : ""}`
-            }
-            to="/create"
-          >
-            <i className="ri-add-line mr-1"></i> Create
-          </NavLink>
+            <>
+              <NavLink
+                className={({ isActive }) =>
+                  `hover:text-red-700 ${isActive ? "text-red-700 underline underline-offset-4" : ""}`
+                }
+                to="/create"
+              >
+                <i className="ri-add-line mr-1"></i> Create
+              </NavLink>
+              <NavLink
+                className={({ isActive }) =>
+                  `hover:text-red-700 ${isActive ? "text-red-700 underline underline-offset-4" : ""}`
+                }
+                to="/my-recipes"
+              >
+                <i className="ri-folder-user-line mr-1"></i> My Recipes
+              </NavLink>
+            </>
           )}
           {!isSeller && (
             <NavLink
@@ -208,15 +218,26 @@ const Nav = () => {
             <i className="ri-information-line mr-1"></i> About
           </NavLink>
           {isSeller && (
-          <NavLink
-            className={({ isActive }) =>
-              `py-1 ${isActive ? "text-red-700 underline underline-offset-4" : "hover:text-red-700"}`
-            }
-            to="/create"
-            onClick={closeMenu}
-          >
-            <i className="ri-add-line mr-1"></i> Create
-          </NavLink>
+            <>
+              <NavLink
+                className={({ isActive }) =>
+                  `py-1 ${isActive ? "text-red-700 underline underline-offset-4" : "hover:text-red-700"}`
+                }
+                to="/create"
+                onClick={closeMenu}
+              >
+                <i className="ri-add-line mr-1"></i> Create
+              </NavLink>
+              <NavLink
+                className={({ isActive }) =>
+                  `py-1 ${isActive ? "text-red-700 underline underline-offset-4" : "hover:text-red-700"}`
+                }
+                to="/my-recipes"
+                onClick={closeMenu}
+              >
+                <i className="ri-folder-user-line mr-1"></i> My Recipes
+              </NavLink>
+            </>
           )}
           {!isSeller && (
             <NavLink

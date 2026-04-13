@@ -13,6 +13,7 @@ import Register from "../pages/Register";
 import AdminDashboard from "../pages/AdminDashboard";
 import { useAuth } from "../context/auth";
 import VerifyOtp from "../pages/verifyOtp";
+import MyRecipes from "../pages/MyRecipes";
 
 const SellerRoute = ({ children }) => {
   const location = useLocation();
@@ -69,6 +70,7 @@ const MainRoutes = () => {
         <Route path="/recipe" element={<Navigate to="/recipes" replace />} />
         <Route path="/recipes/details/:id" element={<SingleRecipe />} />
         <Route path="/create" element={<SellerRoute><Create /></SellerRoute>} />
+        <Route path="/my-recipes" element={<SellerRoute><MyRecipes /></SellerRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/about" element={<About />} />
         <Route path="/fav" element={<UserOnlyRoute><Fav /></UserOnlyRoute>} />

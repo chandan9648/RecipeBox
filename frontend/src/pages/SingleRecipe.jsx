@@ -226,8 +226,8 @@ const SingleRecipe = () => {
         </div>
       </div>
 
-      {/* Right: Edit Form (seller-only) */}
-      {isSeller && (
+      {/* Right: Edit Form (creator-only) */}
+      {isSeller && user && recipe.createdBy && String(recipe.createdBy) === String(user._id || user.id) && (
       <form className="bg-white/10 rounded-lg p-5" onSubmit={handleSubmit(UpdateHandler)}>
         <div className="grid gap-3">
           <div>
