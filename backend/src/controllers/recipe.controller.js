@@ -2,14 +2,14 @@ const Recipe = require('../models/recipe.model');
 
 //list all recipes
 async function listRecipes(_req, res) {
-  const recipes = await Recipe.find({}).sort({ createdAt: -1 });
+  const recipes = await Recipe.find({}).sort({ createdAt: -1 }).populate('reviews.user', 'name avatar');
   return res.json({ recipes });
 }
 
 //get recipe by id
 async function getRecipeById(req, res) {
   const { id } = req.params;
-  const recipe = await Recipe.findById(id);
+  const recipe = await Recipe.findById(id).populate('reviews.user', 'name avatar');
   if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
   return res.json({ recipe });
 }
@@ -78,10 +78,67 @@ async function deleteRecipe(req, res) {
   return res.json({ message: 'Recipe deleted' });
 }
 
+//toggle like
+async function toggleLike(req, res) {
+  const { id } = req.params;
+  const userId = req.user?._id;
+  
+  const recipe = await Recipe.findById(id);
+  if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+  const isLiked = recipe.likes.includes(userId);
+  if (isLiked) {
+    recipe.likes.pull(userId);
+  } else {
+    recipe.likes.push(userId);
+  }
+  
+  await recipe.save();
+  await recipe.populate('reviews.user', 'name avatar');
+  return res.json({ message: isLiked ? 'Unliked' : 'Liked', recipe });
+}
+
+//add review
+async function addReview(req, res) {
+  const { id } = req.params;
+  const userId = req.user?._id;
+  const { rating, comment } = req.body || {};
+
+  if (!rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+  }
+  if (!comment || String(comment).trim().length === 0) {
+    return res.status(400).json({ message: 'Comment is required' });
+  }
+
+  const recipe = await Recipe.findById(id);
+  if (!recipe) return res.status(404).json({ message: 'Recipe not found' });
+
+  // prevent multiple reviews from same user by checking
+  const existingReviewIndex = recipe.reviews.findIndex(r => String(r.user) === String(userId));
+  if (existingReviewIndex !== -1) {
+    recipe.reviews[existingReviewIndex].rating = Number(rating);
+    recipe.reviews[existingReviewIndex].comment = String(comment).trim();
+    recipe.reviews[existingReviewIndex].createdAt = new Date();
+  } else {
+    recipe.reviews.push({
+      user: userId,
+      rating: Number(rating),
+      comment: String(comment).trim(),
+    });
+  }
+
+  await recipe.save();
+  await recipe.populate('reviews.user', 'name avatar');
+  return res.json({ message: 'Review added', recipe });
+}
+
 module.exports = {
   listRecipes,
   getRecipeById,
   createRecipe,
   updateRecipe,
   deleteRecipe,
+  toggleLike,
+  addReview,
 };

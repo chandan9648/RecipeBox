@@ -17,6 +17,9 @@ const SingleRecipe = () => {
   // Match id regardless of it being number (seed) or string (nanoid)
   const recipe = data.find((r) => String(r.id) === String(params.id));
 
+  const [reviewRating, setReviewRating] = React.useState(5);
+  const [reviewComment, setReviewComment] = React.useState("");
+
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {},
   });
@@ -90,6 +93,51 @@ const SingleRecipe = () => {
     // toast.info("Removed from Favorites");
   };
 
+  const LikeHandler = async () => {
+    if (!user) {
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+    try {
+      const res = await api.post(`recipes/${params.id}/like`);
+      const updated = res?.data?.recipe;
+      if (!updated) return;
+      
+      const index = data.findIndex((r) => String(r.id) === String(params.id));
+      const copydata = [...data];
+      if (index >= 0) copydata[index] = updated;
+      setData(copydata);
+    } catch (error) {
+      console.error('Like error:', error);
+      toast.error('Failed to like recipe');
+    }
+  };
+
+  const ReviewSubmitHandler = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+    try {
+      const res = await api.post(`recipes/${params.id}/review`, { rating: reviewRating, comment: reviewComment });
+      const updated = res?.data?.recipe;
+      if (!updated) return;
+      
+      const index = data.findIndex((r) => String(r.id) === String(params.id));
+      const copydata = [...data];
+      if (index >= 0) copydata[index] = updated;
+      setData(copydata);
+      
+      toast.success("Review added!");
+      setReviewComment("");
+      setReviewRating(5);
+    } catch (error) {
+      console.error('Review error:', error);
+      toast.error(error.response?.data?.message || 'Failed to add review');
+    }
+  };
+
   if (!recipe) {
     // Data loaded but recipe not found
     if (data.length > 0) return <div className="p-4">Recipe not found.</div>;
@@ -99,9 +147,16 @@ const SingleRecipe = () => {
 
   const cover = recipe.image || "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9?q=80&w=1200&auto=format&fit=crop";
 
+  const isLiked = user && recipe.likes?.includes(user._id || user.id);
+  const totalLikes = recipe.likes?.length || 0;
+  const avgRating = recipe.reviews?.length
+    ? (recipe.reviews.reduce((acc, r) => acc + r.rating, 0) / recipe.reviews.length).toFixed(1)
+    : 0;
+
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 grid gap-6 md:grid-cols-2">
-      {/* Left: Details */}
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Left: Details */}
       <div className="relative bg-white/10 rounded-lg p-5">
         {!isSeller && (
           isFav ? (
@@ -129,7 +184,17 @@ const SingleRecipe = () => {
         </div>
 
         <h1 className="mt-3 text-3xl font-extrabold">{recipe.title || 'Untitled Recipe'}</h1>
-        <small className="text-rose-200 font-semibold">{recipe.chef || 'Anonymous'}</small>
+        <div className="flex items-center gap-5 text-sm mt-2 mb-3">
+          <small className="text-rose-200 font-semibold">{recipe.chef || 'Anonymous'}</small>
+          <div className="flex items-center gap-1 text-yellow-500">
+            <i className="ri-star-fill hover:scale-110 transition-transform"></i> <span className="text-gray-200">{avgRating} ({recipe.reviews?.length || 0})</span>
+          </div>
+          <div 
+            onClick={LikeHandler}
+            className={`flex items-center gap-1 cursor-pointer transition-colors ${isLiked ? 'text-blue-500' : 'text-gray-400 hover:text-blue-400'}`}>
+            <i className={`${isLiked ? "ri-thumb-up-fill" : "ri-thumb-up-line"} text-lg hover:scale-110 transition-transform`}></i> <span>{totalLikes}</span>
+          </div>
+        </div>
         <p className="text-sm my-3">{recipe.desc}</p>
 
         {/* details */}
@@ -250,6 +315,74 @@ const SingleRecipe = () => {
         </div>
       </form>
       )}
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-8 bg-white/10 rounded-lg p-5">
+        <h3 className="text-xl font-bold mb-4">Reviews</h3>
+        
+        {/* Reviews List */}
+        <div className="space-y-4 mb-6 md:w-2/3">
+          {recipe.reviews && recipe.reviews.length > 0 ? (
+            recipe.reviews.map((r, idx) => (
+              <div key={idx} className="bg-black/20 p-4 rounded text-sm shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-rose-600 flex items-center justify-center text-white font-bold shadow">
+                      {r.user?.name ? r.user.name[0].toUpperCase() : 'U'}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-rose-200 block">{r.user?.name || 'Unknown User'}</span>
+                      <small className="text-gray-400">{new Date(r.createdAt || Date.now()).toLocaleDateString()}</small>
+                    </div>
+                  </div>
+                  <div className="text-yellow-500 flex items-center gap-1 bg-black/40 px-2 py-1 rounded">
+                    <i className="ri-star-fill"></i> {r.rating}
+                  </div>
+                </div>
+                <p className="text-gray-200 mt-2 ml-11">{r.comment}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-400 bg-black/20 p-4 rounded">No reviews yet. Be the first to review!</p>
+          )}
+        </div>
+
+        {/* Review Form */}
+        <div className="bg-black/30 p-5 rounded-lg md:w-2/3 border border-gray-700">
+          <h4 className="font-semibold mb-3 text-lg">Leave a Review</h4>
+          <form onSubmit={ReviewSubmitHandler} className="grid gap-4">
+            <div>
+              <label className="block text-sm mb-1 text-gray-300">Rating</label>
+              <div className="flex gap-1 py-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <i 
+                    key={star}
+                    className={`text-2xl cursor-pointer transition-colors ${reviewRating >= star ? "ri-star-fill text-yellow-500" : "ri-star-line text-gray-400 hover:text-yellow-400"}`}
+                    onClick={() => setReviewRating(star)}
+                  ></i>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm mb-1 text-gray-300">Comment</label>
+              <textarea 
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                className="w-full min-h-24 px-3 py-2 rounded bg-white/90 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500 resize-y" 
+                placeholder="What did you think of this recipe?"
+                required
+              />
+            </div>
+            <div>
+              <button type="submit" className="bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded font-medium shadow-md cursor-pointer transition-colors w-full md:w-auto">
+                Submit Review
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
     </div>
   );
 };

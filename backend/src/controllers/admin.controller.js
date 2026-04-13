@@ -27,6 +27,7 @@ async function getUserRecipeStats(_req, res) {
           userId: { $toString: '$_id' },
           name: 1,
           email: 1,
+          role: 1,
           recipeCount: { $size: '$recipes' },
         },
       },

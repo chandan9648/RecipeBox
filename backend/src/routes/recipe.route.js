@@ -5,6 +5,8 @@ const {
   createRecipe,
   updateRecipe,
   deleteRecipe,
+  toggleLike,
+  addReview,
 } = require('../controllers/recipe.controller');
 const { authenticate, authorizeRoles } = require('../middlewares/auth.middleware');
 
@@ -18,5 +20,9 @@ router.get('/:id', getRecipeById);
 router.post('/', authenticate, authorizeRoles('seller'), createRecipe);
 router.patch('/:id', authenticate, authorizeRoles('seller'), updateRecipe);
 router.delete('/:id', authenticate, authorizeRoles('seller'), deleteRecipe);
+
+// User interactions
+router.post('/:id/like', authenticate, toggleLike);
+router.post('/:id/review', authenticate, addReview);
 
 module.exports = router;

@@ -155,8 +155,13 @@ const AdminDashboard = () => {
                     <User className="h-5 w-5 text-green-700" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-base font-bold text-gray-900 truncate" title={u?.name || ""}>
+                    <div className="text-base font-bold text-gray-900 truncate flex items-center gap-2" title={u?.name || ""}>
                       {u?.name || "Unknown"}
+                      {u?.role && (
+                        <span className={`px-2 py-0.5 text-xs font-semibold rounded-md capitalize ${u.role === 'seller' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                          {u.role}
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm text-gray-600 flex items-center gap-2 min-w-0">
                       <Mail className="h-4 w-4 shrink-0" />

@@ -14,6 +14,15 @@ const recipeSchema = new mongoose.Schema(
     ingr: { type: String, trim: true },
     inst: { type: String, trim: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }],
+    reviews: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+        rating: { type: Number, required: true, min: 1, max: 5 },
+        comment: { type: String, required: true, trim: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
