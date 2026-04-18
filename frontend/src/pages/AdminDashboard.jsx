@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../utils/axios.jsx";
 import { useAuth } from "../context/auth";
 import { toast } from "react-toastify";
-import { Mail, Trash2, User, UtensilsCrossed } from "lucide-react";
+import { Mail, Trash2, User, UtensilsCrossed, X } from "lucide-react";
 import {
   Cell,
   Legend,
@@ -21,6 +21,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [error, setError] = useState("");
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -283,17 +284,20 @@ const AdminDashboard = () => {
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {pendingRecipes.map(recipe => (
               <div key={recipe.id || recipe._id} className="bg-white rounded-xl border border-orange-100 shadow-sm overflow-hidden flex flex-col">
-                <Link to={`/recipes/details/${recipe.id || recipe._id}`} target="_blank">
+                <div onClick={() => setSelectedRecipe(recipe)} className="cursor-pointer">
                   <img src={recipe.image || "https://via.placeholder.com/400x300?text=Pending"} alt="recipe" className="h-32 w-full object-cover hover:opacity-90 transition-opacity" />
-                </Link>
+                </div>
                 <div className="p-3 flex-1 flex flex-col">
-                  <Link to={`/recipes/details/${recipe.id || recipe._id}`} target="_blank" className="font-bold text-gray-900 line-clamp-1 hover:text-rose-600 hover:underline">
+                  <div onClick={() => setSelectedRecipe(recipe)} className="font-bold text-gray-900 line-clamp-1 hover:text-rose-600 hover:underline cursor-pointer">
                     {recipe.title || 'Untitled'}
-                  </Link>
+                  </div>
                   <div className="text-xs text-gray-500 mt-1 mb-2">By: {recipe.createdBy?.name || recipe.chef || 'Unknown'}</div>
-                  <div className="mt-auto flex gap-2">
-                    <button onClick={() => handleUpdateStatus(recipe.id || recipe._id, 'approved')} disabled={loading} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50">Approve</button>
-                    <button onClick={() => handleUpdateStatus(recipe.id || recipe._id, 'rejected')} disabled={loading} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50">Reject</button>
+                  <div className="mt-auto flex flex-col gap-2">
+                    <button onClick={() => setSelectedRecipe(recipe)} className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors text-center">Review Details</button>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleUpdateStatus(recipe.id || recipe._id, 'approved')} disabled={loading} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50 transition-colors">Approve</button>
+                      <button onClick={() => handleUpdateStatus(recipe.id || recipe._id, 'rejected')} disabled={loading} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50 transition-colors">Reject</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -301,6 +305,87 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Recipe Review Modal */}
+      {selectedRecipe && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 overflow-y-auto">
+          <div className="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={() => setSelectedRecipe(null)} 
+              className="absolute top-4 right-4 bg-gray-100 hover:bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors z-10 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 pr-10">{selectedRecipe.title}</h2>
+              <div className="text-gray-500 text-sm mt-1 mb-4 flex items-center gap-2">
+                <span>By: {selectedRecipe.createdBy?.name || selectedRecipe.chef || 'Unknown'}</span>
+                {selectedRecipe.category && (
+                  <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider">{selectedRecipe.category}</span>
+                )}
+              </div>
+              
+              <div className="grid md:grid-cols-[1fr_1.5fr] gap-6">
+                <div>
+                  <img src={selectedRecipe.image || "https://via.placeholder.com/400x300?text=Pending"} alt="recipe" className="w-full h-auto object-cover rounded-lg shadow-sm border border-gray-100" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-1 border-b pb-1">Description</h4>
+                  <p className="text-sm text-gray-600 mb-4">{selectedRecipe.desc || "No description provided."}</p>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-bold text-gray-800 mb-1 border-b pb-1">Ingredients</h4>
+                      <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        {(selectedRecipe.ingr || "").split(",").map(i => i.trim()).filter(Boolean).map((i, idx) => (
+                          <li key={idx}>{i}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800 mb-1 border-b pb-1">Instructions</h4>
+                      <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1">
+                        {(selectedRecipe.inst || "").split(",").map(i => i.trim()).filter(Boolean).map((i, idx) => (
+                          <li key={idx}>{i}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-gray-100 flex gap-3 justify-end bg-white">
+                <button 
+                  onClick={() => setSelectedRecipe(null)} 
+                  className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold cursor-pointer transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => {
+                    handleUpdateStatus(selectedRecipe.id || selectedRecipe._id, 'rejected');
+                    setSelectedRecipe(null);
+                  }} 
+                  disabled={loading} 
+                  className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold disabled:opacity-50 cursor-pointer shadow-sm transition-colors"
+                >
+                  Reject Recipe
+                </button>
+                <button 
+                  onClick={() => {
+                    handleUpdateStatus(selectedRecipe.id || selectedRecipe._id, 'approved');
+                    setSelectedRecipe(null);
+                  }} 
+                  disabled={loading} 
+                  className="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold disabled:opacity-50 cursor-pointer shadow-sm transition-colors"
+                >
+                  Approve Recipe
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
