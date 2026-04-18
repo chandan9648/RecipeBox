@@ -12,7 +12,7 @@ const SingleRecipe = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
-  const { isSeller, user } = useAuth() || {};
+  const { isSeller, isAdmin, user } = useAuth() || {};
   
   const [localRecipe, setLocalRecipe] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
@@ -86,6 +86,27 @@ const SingleRecipe = () => {
     } catch (error) {
       console.error('Delete recipe error:', error);
       toast.error(error.response?.data?.message || 'Failed to delete recipe');
+    }
+  };
+
+  const handleUpdateStatus = async (status) => {
+    try {
+      setLoading(true);
+      const res = await api.patch(`admin/recipes/${recipe.id || recipe._id}/status`, { status });
+      const updated = res.data.recipe;
+      
+      const copydata = [...data];
+      const index = copydata.findIndex((r) => String(r.id || r._id) === String(recipe.id || recipe._id));
+      if (index >= 0) {
+        copydata[index] = updated;
+        setData(copydata);
+      }
+      setLocalRecipe(updated);
+      toast.success(`Recipe ${status}`);
+    } catch(e) {
+      toast.error(e?.response?.data?.message || `Failed to ${status} recipe`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -173,6 +194,18 @@ const SingleRecipe = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
+      {isAdmin && recipe.status === 'pending' && (
+        <div className="bg-orange-100 border border-orange-300 p-4 mb-6 rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-orange-800 text-lg">Pending Review</h3>
+            <p className="text-orange-700 text-sm mt-1">Please carefully review the recipe details before approving or rejecting.</p>
+          </div>
+          <div className="flex gap-3 shrink-0">
+            <button onClick={() => handleUpdateStatus('approved')} disabled={loading} className="px-5 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md font-semibold disabled:opacity-50 cursor-pointer shadow-sm transition-colors">Approve</button>
+            <button onClick={() => handleUpdateStatus('rejected')} disabled={loading} className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-semibold disabled:opacity-50 cursor-pointer shadow-sm transition-colors">Reject</button>
+          </div>
+        </div>
+      )}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Left: Details */}
       <div className="relative bg-white/10 rounded-lg p-5">

@@ -87,7 +87,8 @@ async function updateRecipeStatus(req, res) {
     
     return res.json({ message: `Recipe ${status} successfully`, recipe });
   } catch (err) {
-    return res.status(500).json({ message: 'Failed to update recipe status' });
+    console.error("Error updating recipe status:", err);
+    return res.status(500).json({ message: 'Failed to update recipe status', error: err.message });
   }
 }
 

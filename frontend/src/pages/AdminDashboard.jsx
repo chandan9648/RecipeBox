@@ -97,6 +97,7 @@ const AdminDashboard = () => {
     }
   }
 
+  //DeleteUser
   const handleDeleteUser = useCallback(
     async (u) => {
       const userId = u?.userId;
@@ -281,18 +282,18 @@ const AdminDashboard = () => {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {pendingRecipes.map(recipe => (
-              <div key={recipe._id} className="bg-white rounded-xl border border-orange-100 shadow-sm overflow-hidden flex flex-col">
-                <Link to={`/recipes/details/${recipe._id}`} target="_blank">
+              <div key={recipe.id || recipe._id} className="bg-white rounded-xl border border-orange-100 shadow-sm overflow-hidden flex flex-col">
+                <Link to={`/recipes/details/${recipe.id || recipe._id}`} target="_blank">
                   <img src={recipe.image || "https://via.placeholder.com/400x300?text=Pending"} alt="recipe" className="h-32 w-full object-cover hover:opacity-90 transition-opacity" />
                 </Link>
                 <div className="p-3 flex-1 flex flex-col">
-                  <Link to={`/recipes/details/${recipe._id}`} target="_blank" className="font-bold text-gray-900 line-clamp-1 hover:text-rose-600 hover:underline">
+                  <Link to={`/recipes/details/${recipe.id || recipe._id}`} target="_blank" className="font-bold text-gray-900 line-clamp-1 hover:text-rose-600 hover:underline">
                     {recipe.title || 'Untitled'}
                   </Link>
                   <div className="text-xs text-gray-500 mt-1 mb-2">By: {recipe.createdBy?.name || recipe.chef || 'Unknown'}</div>
                   <div className="mt-auto flex gap-2">
-                    <button onClick={() => handleUpdateStatus(recipe._id, 'approved')} disabled={loading} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50">Approve</button>
-                    <button onClick={() => handleUpdateStatus(recipe._id, 'rejected')} disabled={loading} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50">Reject</button>
+                    <button onClick={() => handleUpdateStatus(recipe.id || recipe._id, 'approved')} disabled={loading} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50">Approve</button>
+                    <button onClick={() => handleUpdateStatus(recipe.id || recipe._id, 'rejected')} disabled={loading} className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50">Reject</button>
                   </div>
                 </div>
               </div>
