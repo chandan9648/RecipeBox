@@ -7,7 +7,6 @@ async function connectDB() {
     if (!uri) {
       throw new Error('MONGO_URI is not set');
     }
-
     mongoose.connection.on('connected', () => {
       console.log('MongoDB connected');
     });
