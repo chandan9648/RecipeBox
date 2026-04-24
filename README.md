@@ -1,36 +1,178 @@
-# Google Authentication (Login)
+📦 RecipeBox – Recipe Management System
 
-This project supports Google Sign-In using **Google Identity Services**.
+A modern full-stack web application that allows users to create, manage, and explore recipes.
+Users can add ingredients, edit recipes, and organize their cooking ideas in one place.
 
-## Backend env
+🚀 Features
+🍲 Add new recipes
+📝 Edit existing recipes
+❌ Delete recipes
+📋 View recipe details (ingredients & instructions)
+👨‍🍳 Admin approvement and rejection of recipes
+💾 Data persistence (Database / Local Storage)
+📱 Responsive UI (Mobile + Desktop)
 
-Set these in your backend environment (Render / local `.env`):
+🛠️ Tech Stack
+Frontend
+React.js
+Tailwind CSS / CSS
+Axios
 
-- `GOOGLE_CLIENT_ID` = your Google OAuth Client ID
-- `JWT_SECRET` = your JWT secret (already required)
+Backend
+Node.js
+Express.js
 
-Backend endpoint:
+Database
+MongoDB
 
-- `POST /api/auth/google` with body `{ "credential": "<google_id_token>" }`
+📂 Project Structure
+RecipeBox/
+----------------------------
+backend/
+│
+├── src/
+│   ├── controllers/        # Business logic (API handling)
+│   │   ├── authController.js
+│   │   └── recipeController.js
+│   │
+│   ├── db/                 # Database connection
+│   │   └── db.js
+│   │
+│   ├── middlewares/        # Custom middlewares
+│   │   ├── authMiddleware.js
+│   │   └── errorMiddleware.js
+│   │
+│   ├── models/             # MongoDB schemas
+│   │   ├── User.js
+│   │   └── Recipe.js
+│   │
+│   ├── routes/             # API routes
+│   │   ├── authRoutes.js
+│   │   └── recipeRoutes.js
+│   │
+│   ├── utils/              # Helper functions
+│   │   └── generateToken.js
+│   │
+│   └── app.js              # Express app config
+│
+├── server.js               # Entry point (start server)
+├── .env.example            # Environment variables template
+├── .gitignore
+├── package.json
+└── package-lock.json
+------------------------------
+frontend/
+│
+├── public/                 # Static assets
+│
+├── src/
+│   ├── Components/        # Reusable UI components
+│   │   ├── Navbar.jsx
+│   │   ├── Sidebar.jsx
+│   │   ├── RecipeCard.jsx
+│   │   └── AdminLogo.jsx
+│   │
+│   ├── context/           # Global state (Context API)
+│   │   └── AuthContext.jsx
+│   │
+│   ├── pages/             # Application pages
+│   │   ├── Home.jsx
+│   │   ├── Login.jsx
+│   │   ├── Signup.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── AddRecipe.jsx
+│   │   ├── EditRecipe.jsx
+│   │   └── RecipeDetails.jsx
+│   │
+│   ├── routes/            # Route handling
+│   │   └── AppRoutes.jsx
+│   │
+│   ├── utils/             # Helper functions
+│   │   └── api.js
+│   │
+│   ├── App.jsx            # Main component
+│   ├── main.jsx           # Entry point
+│   └── index.css          # Global styles
+│
+├── index.html
+├── .env.example
+├── .gitignore
+├── eslint.config.js
+├── package.json
+└── package-lock.json
 
-## Frontend env
+⚙️ Installation & Setup (Step-by-Step)
+1️⃣ Clone the Repository
+git clone https://github.com/chandan9648/RecipeBox.git
 
-Set this in your frontend environment (Vercel / local `.env`):
+cd RecipeBox
+2️⃣ Install Dependencies
+For Backend
+cd backend
+npm install
+For Frontend
+cd frontend
+npm install
+3️⃣ Setup Environment Variables
 
-- `VITE_GOOGLE_CLIENT_ID` = same Google OAuth Client ID
+Create a .env file in the server folder:
 
-Notes:
+PORT=3000
+MONGO_URI=your_mongodb_connection_string_here
+JWT_SECRET=your_jwt_secret_here
+ADMIN_SECRET=your_admin_secret_here
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+EMAIL_USER=your_email_address_here
+EMAIL_PASS=your_email_app_password_here
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
 
-- Make sure your Google OAuth client has your domains added in **Authorized JavaScript origins** (e.g. `http://localhost:5173` and your Vercel domain).
-# React + Vite
+4️⃣ Run the Application
+Start Backend
+cd backend
+npm run dev
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Start Frontend
+cd frontend
+npm start
 
-Currently, two official plugins are available:
+5️⃣ Open in Browser
+http://localhost:3000
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+🔄 How It Works
+User opens the app
+Adds a recipe (name + ingredients + instructions)
+Data is stored in MongoDB
+Recipes are displayed dynamically
+User can update or delete anytime
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+📡 API Endpoints (Example)
+Method	Endpoint	Description
+GET	/recipes	Get all recipes
+POST	/recipes	Add new recipe
+PUT	/recipes/:id	Update recipe
+DELETE	/recipes/:id	Delete recipe
+
+🔐 Future Improvements
+🔑 User Authentication (JWT)
+👨‍🍳 Admin Authentication( approve/reject recipe)
+❤️ Favorite recipes
+🔍 Search & filter recipes
+🌐 Deploy on cloud (vercel/ Render)
+
+📊 Recipe analytics
+🤝 Contributing
+Fork the repo
+Create a new branch
+Commit your changes
+Push and create PR
+📜 License
+
+This project is licensed under the MIT License.
+
+👨‍💻 Author
+Chandan Chaudhary
+
+GitHub: https://github.com/chandan9648
