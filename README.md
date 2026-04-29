@@ -1,4 +1,4 @@
-📦 RecipeBox – Recipe Management System
+📦RecipeBox – Recipe Management System
 
 A modern full-stack web application that allows users to create, manage, and explore recipes.
 Users can add ingredients, edit recipes, and organize their cooking ideas in one place.
